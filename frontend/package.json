@@ -8,8 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "postinstall": "npm run db:generate",
-    "db:generate": "prisma generate --schema=../backend/prisma/schema.prisma",
-    "db:push": "prisma db push --schema=../backend/prisma/schema.prisma",
+    "db:generate": "node scripts/sync-prisma.js && prisma generate",
+    "db:push": "prisma db push",
     "db:seed": "node ../backend/prisma/seed.js",
     "db:setup": "npm run db:push && npm run db:seed"
   },
