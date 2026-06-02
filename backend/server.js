@@ -52,6 +52,22 @@ const prisma = new PrismaClient({ adapter });
 const JWT_SECRET = process.env.JWT_SECRET || "nestarrival-secure-session-key-2026-xyz";
 const JWT_COOKIE_NAME = "nestarrival_session";
 const PORT = process.env.PORT || 5000;
+const IS_PRODUCTION = process.env.NODE_ENV === "production";
+
+const defaultAllowedOrigins = ["http://localhost:3000", "http://127.0.0.1:3000"];
+const envAllowedOrigins = (process.env.CORS_ORIGINS || "")
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+const allowedOrigins = Array.from(new Set([...defaultAllowedOrigins, ...envAllowedOrigins]));
+
+const SESSION_COOKIE_OPTIONS = {
+  httpOnly: true,
+  secure: IS_PRODUCTION,
+  sameSite: IS_PRODUCTION ? "none" : "strict",
+  maxAge: 7 * 24 * 60 * 60 * 1000,
+  path: "/"
+};
 
 const SUBSCRIPTION_PLANS = [
   { id: "plan-1", name: "Standard 14-Day", priceOneTime: 29, priceSub: 19, durationDays: 14, approachesLimit: 5 },
@@ -145,7 +161,7 @@ const upload = multer({ storage });
 // -------------------------------------------------------------
 const app = express();
 app.use(cors({
-  origin: ["http://localhost:3000", "http://127.0.0.1:3000"],
+  origin: allowedOrigins,
   credentials: true
 }));
 app.use(express.json());
@@ -280,13 +296,7 @@ app.post("/api/auth/login", async (req, res) => {
 
     const token = jwt.sign({ userId: user.id, email: user.email, role: user.role }, JWT_SECRET, { expiresIn: "7d" });
 
-    res.cookie(JWT_COOKIE_NAME, token, {
-      httpOnly: true,
-      secure: false, // Set secure true in production
-      sameSite: "strict",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-      path: "/"
-    });
+    res.cookie(JWT_COOKIE_NAME, token, SESSION_COOKIE_OPTIONS);
 
     res.json({
       message: "Login successful.",
@@ -348,13 +358,7 @@ app.post("/api/auth/google", async (req, res) => {
 
     const token = jwt.sign({ userId: user.id, email: user.email, role: user.role }, JWT_SECRET, { expiresIn: "7d" });
 
-    res.cookie(JWT_COOKIE_NAME, token, {
-      httpOnly: true,
-      secure: false, // Set secure true in production
-      sameSite: "strict",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-      path: "/"
-    });
+    res.cookie(JWT_COOKIE_NAME, token, SESSION_COOKIE_OPTIONS);
 
     res.json({
       message: "Google Login successful.",
@@ -402,13 +406,7 @@ app.post("/api/auth/verify-otp", async (req, res) => {
 
     const token = jwt.sign({ userId: user.id, email: user.email, role: user.role }, JWT_SECRET, { expiresIn: "7d" });
 
-    res.cookie(JWT_COOKIE_NAME, token, {
-      httpOnly: true,
-      secure: false,
-      sameSite: "strict",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-      path: "/"
-    });
+    res.cookie(JWT_COOKIE_NAME, token, SESSION_COOKIE_OPTIONS);
 
     res.json({
       message: "Account verified successfully.",
@@ -1186,7 +1184,7 @@ app.post("/api/admin/users/ban", requireAuth, requireRole("ADMIN"), async (req, 
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: ["http://localhost:3000", "http://127.0.0.1:3000"],
+    origin: allowedOrigins,
     methods: ["GET", "POST"],
     credentials: true
   }

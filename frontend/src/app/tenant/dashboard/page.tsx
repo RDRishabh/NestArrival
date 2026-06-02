@@ -12,6 +12,8 @@ import {
 import { SUBSCRIPTION_PLANS } from "@/lib/constants";
 import { motion, AnimatePresence } from "framer-motion";
 
+const socketServerUrl = process.env.NEXT_PUBLIC_BACKEND_ORIGIN || "http://localhost:5000";
+
 export default function TenantDashboard() {
   const router = useRouter();
   
@@ -81,7 +83,7 @@ export default function TenantDashboard() {
   // WebSocket lifecycle connection effect
   useEffect(() => {
     if (activeRoom && currentUser) {
-      socketRef.current = io("http://localhost:5000", {
+      socketRef.current = io(socketServerUrl, {
         withCredentials: true
       });
 

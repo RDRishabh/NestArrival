@@ -11,6 +11,8 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
+const socketServerUrl = process.env.NEXT_PUBLIC_BACKEND_ORIGIN || "http://localhost:5000";
+
 export default function OwnerDashboard() {
   const router = useRouter();
 
@@ -56,7 +58,7 @@ export default function OwnerDashboard() {
   // WebSocket lifecycle connection effect
   useEffect(() => {
     if (activeRoom && currentUser) {
-      socketRef.current = io("http://localhost:5000", {
+      socketRef.current = io(socketServerUrl, {
         withCredentials: true
       });
 
