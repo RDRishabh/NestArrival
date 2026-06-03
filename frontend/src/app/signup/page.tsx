@@ -158,7 +158,7 @@ export default function SignupPage() {
               className="text-5xl font-serif font-bold leading-tight mb-6"
             >
               Start your <br />
-              <span className="text-[#cfa052] italic">Canadian Journey</span><br />
+              <span className="text-[#cfa052] italic">journey abroad</span><br />
               with absolute trust.
             </motion.h1>
             <motion.p 

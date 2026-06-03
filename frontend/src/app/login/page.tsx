@@ -146,7 +146,7 @@ export default function LoginPage() {
               className="text-5xl font-serif font-bold leading-tight mb-6"
             >
               Secure your <br />
-              <span className="text-[#cfa052] italic">Canadian Dream</span><br />
+              <span className="text-[#cfa052] italic">journey abroad</span><br />
               before you arrive.
             </motion.h1>
             <motion.p 

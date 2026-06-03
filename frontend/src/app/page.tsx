@@ -7,11 +7,12 @@ import Footer from "@/components/Footer";
 import TiltCard from "@/components/TiltCard";
 import CustomDropdown from "@/components/CustomDropdown";
 import CustomDatePicker from "@/components/CustomDatePicker";
+import InteractiveSteps from "@/components/InteractiveSteps";
 import {
   ShieldCheck, ArrowRight, CheckCircle2,
   ShieldAlert, Sparkles, Compass,
   Building, Users, Mail, Phone, MapPin, ChevronDown, Check,
-  GraduationCap, Briefcase, Heart, Globe, DollarSign, Search, Calendar
+  GraduationCap, Briefcase, Heart, Globe, DollarSign, Search, Calendar, CheckCircle
 } from "lucide-react";
 import { motion, AnimatePresence, useScroll, useTransform } from "framer-motion";
 import gsap from "gsap";
@@ -24,9 +25,13 @@ function AnimatedCounter({ target, suffix = "", prefix = "" }: { target: number;
 
   useEffect(() => {
     if (!ref.current) return;
+    if (typeof window !== "undefined" && !("IntersectionObserver" in window)) {
+      setInView(true);
+      return;
+    }
     const observer = new IntersectionObserver(
       ([entry]) => { if (entry.isIntersecting) setInView(true); },
-      { threshold: 0.5 }
+      { threshold: 0.1 }
     );
     observer.observe(ref.current);
     return () => observer.disconnect();
@@ -105,10 +110,81 @@ export default function HomePage() {
 
   /* ── Data ──────────────────────────────────────────────────────── */
   const floorPlanPreviews = [
-    { type: "Student Housing", title: "Cozy Shared Student Unit", rent: "850", city: "Toronto", specs: "Private Bedroom, Shared Lounge", dim: "12' x 14'", tag: "Close to Subway & UofT", image: "/images/toronto_loft.png" },
-    { type: "Professional Apartments", title: "Modern Downtown Suite", rent: "1,950", city: "Vancouver", specs: "1 Bedroom Studio, Full Kitchen", dim: "24' x 20'", tag: "Tech District Connected", image: "/images/vancouver_townhouse.png" },
-    { type: "Shared Space", title: "Newcomer Co-Living Condo", rent: "750", city: "Montreal", specs: "Private Room, Fully Furnished", dim: "11' x 12'", tag: "Affordable Launch Pad", image: "/images/montreal_studio.png" },
-    { type: "Family Homes", title: "Spacious Suburban Townhouse", rent: "2,800", city: "Mississauga", specs: "3 Bedrooms, 2.5 Bathrooms", dim: "1500 sq ft", tag: "Safe Schools & Parks" },
+    {
+      title: "Charming Chelsea Apartment",
+      city: "London",
+      country: "United Kingdom",
+      rent: "2,400",
+      currency: "GBP",
+      roomType: "Entire Apartment",
+      bedrooms: "2 Bedrooms",
+      furnishing: "Fully Furnished",
+      transit: "2 min to Tube Station",
+      moveIn: "Immediate",
+      verificationBadge: "Vetted Owner",
+      tags: ["Central", "Family-Friendly"],
+      image: "/images/toronto_loft.png"
+    },
+    {
+      title: "Luxury Marina Heights Suite",
+      city: "Dubai",
+      country: "United Arab Emirates",
+      rent: "7,500",
+      currency: "AED",
+      roomType: "Studio Apartment",
+      bedrooms: "1 Bedroom",
+      furnishing: "Furnished",
+      transit: "5 min to Metro",
+      moveIn: "Jul 1, 2026",
+      verificationBadge: "Title Vetted",
+      tags: ["High-Rise", "Pool Access"],
+      image: "/images/vancouver_townhouse.png"
+    },
+    {
+      title: "Sunny Bondi Beach Condo",
+      city: "Sydney",
+      country: "Australia",
+      rent: "950",
+      currency: "AUD",
+      roomType: "Private Room",
+      bedrooms: "1 Bedroom",
+      furnishing: "Semi-Furnished",
+      transit: "Bus stop outside",
+      moveIn: "Aug 15, 2026",
+      verificationBadge: "Identity Verified",
+      tags: ["Beachside", "Student Friendly"],
+      image: "/images/montreal_studio.png"
+    },
+    {
+      title: "Loft in Downtown Manhattan",
+      city: "New York",
+      country: "United States",
+      rent: "3,200",
+      currency: "USD",
+      roomType: "Entire Loft",
+      bedrooms: "1 Bedroom",
+      furnishing: "Fully Furnished",
+      transit: "Subway 1 block away",
+      moveIn: "Immediate",
+      verificationBadge: "Verified Listing",
+      tags: ["Urban", "Fast Transit"],
+      image: "/images/toronto_loft.png"
+    },
+    {
+      title: "Modern City-Centre Townhouse",
+      city: "Auckland",
+      country: "New Zealand",
+      rent: "850",
+      currency: "NZD",
+      roomType: "Entire Townhouse",
+      bedrooms: "3 Bedrooms",
+      furnishing: "Furnished",
+      transit: "10 min walk to Ferry",
+      moveIn: "Sep 1, 2026",
+      verificationBadge: "Title Vetted",
+      tags: ["Spacious", "Quiet"],
+      image: "/images/vancouver_townhouse.png"
+    }
   ];
 
   const faqs = [
@@ -165,13 +241,13 @@ export default function HomePage() {
           {/* Left: Typography */}
           <div className="lg:w-1/2 space-y-6 relative z-20 text-center lg:text-left mt-2">
             <h1 ref={headingRef} className="font-serif text-5xl sm:text-6xl lg:text-7xl font-bold text-[#2c2724] tracking-tight leading-[1.1] opacity-0">
-              Find Your <br className="hidden lg:block"/>
-              Dream Home <br className="hidden lg:block"/>
+              Your Trusted <br className="hidden lg:block"/>
+              Home Platform <br className="hidden lg:block"/>
               <span className="text-[#cfa052] italic font-serif">Before You Arrive.</span>
             </h1>
             
             <p ref={subheadingRef} className="text-base text-[#5c544d] max-w-xl mx-auto lg:mx-0 leading-relaxed opacity-0">
-              Explore a curated, scam-free selection of verified properties. Filter by location, budget, and permit status — all with absolute confidence and refund-backed trust.
+              Helping verified owners connect with verified international tenants through a secure and transparent rental experience. For Immigrants, By Immigrants.
             </p>
 
             {/* Main CTA */}
@@ -369,7 +445,17 @@ export default function HomePage() {
                 Relocating is emotionally overwhelming. Traditional rental portals ignore international applicants because they lack local references or credit scores, resulting in:
               </p>
               <ul className="space-y-3 text-xs text-[#2c2724] font-medium">
-                {["Fake listings and online rental scams demanding deposits.", "Ignored messages and unanswered landlord inquiries.", "Expensive and unstable temporary hotel stays on arrival.", "No ability to vet property owners from across borders."].map((item) => (
+                {[
+                  "Fake listings and online rental scams demanding deposits.", 
+                  "Ignored messages and unanswered landlord inquiries.", 
+                  "No responses from landlords",
+                  "Rejection due to no local credit history",
+                  "Communication barriers across countries and time zones",
+                  "Last-minute accommodation panic",
+                  "Emotional stress of relocation",
+                  "Expensive and unstable temporary hotel stays on arrival.", 
+                  "No ability to vet property owners from across borders."
+                ].map((item) => (
                   <li key={item} className="flex items-start gap-2.5">
                     <span className="text-red-500/80 font-bold flex-shrink-0 mt-0.5">✕</span>
                     <span>{item}</span>
@@ -387,20 +473,32 @@ export default function HomePage() {
                 <h3 className="font-extrabold text-sm text-[#2c2724]">Why Traditional Sites Ignore You</h3>
               </div>
               <p className="text-[11px] text-[#5c544d] leading-relaxed">
-                Most platforms mandate Canadian credit checks or tax documentation that international students and foreign workers don&apos;t possess yet. NestArrival solves this by replacing local references with secure identity & visa vetting.
+                Traditional rental platforms mainly focus on local renters. They fail to understand: no local references, no local income history, different documentation systems, visa-related uncertainty, cross-border communication barriers.
               </p>
-              <div className="border-t border-[#eae1d3] pt-5 flex gap-8 text-xs font-black">
-                <div className="text-[#5c544d]">
-                  <span className="text-[#cfa052] block text-3xl font-black font-serif">
+              <div className="border-t border-[#eae1d3] pt-6 grid grid-cols-3 gap-4 text-center items-start">
+                <div className="space-y-1">
+                  <span className="text-[#cfa052] block text-2xl sm:text-3xl font-bold font-serif leading-none">
                     <AnimatedCounter target={90} suffix="%+" />
                   </span>
-                  <span className="uppercase text-[9px] tracking-widest mt-1 block">scam reduction</span>
+                  <span className="uppercase text-[8px] sm:text-[9px] tracking-wider font-extrabold text-[#8a7d6a] block">
+                    Scam Reduction
+                  </span>
                 </div>
-                <div className="border-l border-[#eae1d3] pl-8 text-[#5c544d]">
-                  <span className="text-[#cfa052] block text-3xl font-black font-serif">
+                <div className="border-l border-[#eae1d3] px-2 space-y-1">
+                  <span className="text-[#cfa052] block text-2xl sm:text-3xl font-bold font-serif leading-none">
                     <AnimatedCounter target={100} suffix="%" />
                   </span>
-                  <span className="uppercase text-[9px] tracking-widest mt-1 block">refund backed</span>
+                  <span className="uppercase text-[8px] sm:text-[9px] tracking-wider font-extrabold text-[#8a7d6a] block">
+                    Refund Backed
+                  </span>
+                </div>
+                <div className="border-l border-[#eae1d3] pl-2 space-y-1">
+                  <span className="text-[#cfa052] block text-2xl sm:text-3xl font-bold font-serif leading-none">
+                    2026
+                  </span>
+                  <span className="uppercase text-[8px] sm:text-[9px] tracking-wider font-extrabold text-[#8a7d6a] block">
+                    Global Launch
+                  </span>
                 </div>
               </div>
             </motion.div>
@@ -409,121 +507,80 @@ export default function HomePage() {
       </section>
 
       {/* ═══ 5. HOW IT WORKS ═══════════════════════════════════════ */}
-      <section className="py-28 px-4 sm:px-6 lg:px-8 bg-[#fdfbf7]">
-        <div className="max-w-6xl mx-auto space-y-14">
-          <div className="text-center max-w-3xl mx-auto space-y-4">
-            <span className="text-[10px] text-[#cfa052] font-extrabold uppercase tracking-widest">How The Platform Works</span>
-            <h2 className="font-serif text-3xl sm:text-4xl font-bold text-[#2c2724] tracking-tight">A Simpler Way to Find Trusted Housing</h2>
-          </div>
-          <motion.div variants={staggerContainer} initial="hidden" whileInView="visible"
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {[
-              { n: "01", title: "Create Relocation Profile", desc: "Define destination city, budget expectations, move-in timelines, and shared or private living preferences." },
-              { n: "02", title: "Legally Verify Credentials", desc: "Submit Passport scans and visa study/work permit documents for secure manual administrative checks." },
-              { n: "03", title: "Browse Vetted Listings", desc: "Explore Approved listings from landlords whose property land registry titles are verified to match local records." },
-              { n: "04", title: "Personalized Matching", desc: "Our system matches compatible tenants with suitable landlords to prevent endless unanswered messaging." },
-              { n: "05", title: "Connect With Vetted Owners", desc: "Unlock secure, real-time messaging chatrooms to discuss tenancy terms, relocation dates, and rules directly." },
-              { n: "06", title: "Refund-Backed Confidence", desc: "If landlords fail to reply to your matched inquiries, your platform connection fee is returned immediately." },
-            ].map((step) => (
-              <motion.div key={step.n} variants={fadeUpItem}
-                className="bg-white p-7 rounded-3xl border border-[#eae1d3] space-y-3 shadow-[0_8px_30px_rgba(44,39,36,0.03)] hover-lift">
-                <span className="font-serif text-3xl font-black text-[#cfa052]">{step.n}</span>
-                <h3 className="font-extrabold text-sm text-[#2c2724] pt-2 border-t border-[#eae1d3]">{step.title}</h3>
-                <p className="text-[11px] text-[#5c544d] leading-relaxed">{step.desc}</p>
-              </motion.div>
-            ))}
-          </motion.div>
-        </div>
-      </section>
+      <InteractiveSteps />
 
-      {/* ═══ 9. PROPERTY PREVIEW — BENTO GRID ═════════════════════ */}
       <section className="py-32 px-4 sm:px-6 lg:px-8 bg-[#f4efe6]">
         <div className="max-w-6xl mx-auto space-y-14">
           <div className="text-center max-w-3xl mx-auto space-y-4">
-            <span className="text-[10px] text-[#cfa052] font-extrabold uppercase tracking-widest">Trending Homes You'll Love</span>
-            <h2 className="font-serif text-3xl sm:text-4xl font-bold text-[#2c2724] tracking-tight">Explore Spaces Designed for Your Next Chapter</h2>
+            <span className="text-[10px] text-[#cfa052] font-extrabold uppercase tracking-widest block">Trending Homes You'll Love</span>
+            <h2 className="font-serif text-3xl sm:text-4xl font-bold text-[#2c2724] tracking-tight">Explore Spaces Designed for Your Next Chapter.</h2>
+            <p className="text-sm text-[#5c544d] max-w-2xl mx-auto leading-relaxed">
+              NestArrival helps international tenants discover verified living spaces that match their lifestyle, budget, comfort, and relocation goals before arriving in a new country.
+            </p>
           </div>
 
-          <motion.div variants={staggerContainer} initial="hidden" whileInView="visible" className="grid grid-cols-1 md:grid-cols-3 md:grid-rows-2 gap-6 auto-rows-[300px]">
-            {/* Toronto Loft — Hero card, 2 cols */}
-            <motion.div variants={fadeUpItem} className="md:col-span-2 md:row-span-1 h-full">
-              <TiltCard tiltMax={4} className="h-full w-full rounded-[2rem] overflow-hidden border-2 border-white bg-white shadow-[0_20px_40px_rgba(44,39,36,0.06)] relative group">
-                <div className="absolute inset-0 img-zoom-container">
-                  <img src="/images/toronto_loft.png" alt="Toronto Loft" className="w-full h-full object-cover" />
-                </div>
-                <div className="absolute inset-0 bg-gradient-to-t from-[#2c2724]/90 via-[#2c2724]/30 to-transparent" />
-                <div className="absolute bottom-0 left-0 right-0 p-8 text-white z-10">
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#cfa052]">{floorPlanPreviews[0].type}</span>
-                    <span className="text-[9px] font-extrabold bg-white text-[#2c2724] px-3 py-1 rounded-full uppercase shadow-lg">
-                      Title Vetted
+          <motion.div variants={staggerContainer} initial="hidden" whileInView="visible" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {floorPlanPreviews.map((listing) => (
+              <motion.div key={listing.title} variants={fadeUpItem}>
+                <TiltCard tiltMax={3} className="h-full w-full rounded-[2rem] overflow-hidden border border-[#eae1d3] bg-white shadow-[0_12px_30px_rgba(44,39,36,0.03)] flex flex-col group hover:shadow-[0_20px_45px_rgba(44,39,36,0.06)] transition-all duration-300">
+                  {/* Image Viewport */}
+                  <div className="h-48 w-full relative overflow-hidden bg-[#f4efe6]">
+                    <img src={listing.image} alt={listing.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                    <span className="absolute top-4 left-4 text-[9px] font-extrabold bg-white text-[#2c2724] px-3 py-1 rounded-full uppercase shadow-sm border border-[#eae1d3]">
+                      {listing.verificationBadge}
                     </span>
                   </div>
-                  <h3 className="font-serif font-black text-2xl">{floorPlanPreviews[0].title}</h3>
-                  <p className="text-xs opacity-90 mt-1">{floorPlanPreviews[0].city}, Canada · {floorPlanPreviews[0].specs}</p>
-                  <div className="flex items-center justify-between mt-4 pt-4 border-t border-white/20">
-                    <div>
-                      <span className="text-[10px] opacity-70 uppercase tracking-widest block mb-0.5">Monthly Rent</span>
-                      <span className="font-black text-xl">CAD ${floorPlanPreviews[0].rent}</span>
+                  
+                  {/* Body Content */}
+                  <div className="p-6 flex-1 flex flex-col justify-between space-y-4">
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center text-[10px] text-[#8a7d6a] font-bold">
+                        <span>{listing.roomType} · {listing.bedrooms}</span>
+                        <span className="text-[#cfa052] font-black">{listing.city}, {listing.country}</span>
+                      </div>
+                      <h3 className="font-serif font-black text-lg text-[#2c2724] leading-tight">{listing.title}</h3>
+                      
+                      <div className="border-t border-[#f4efe6] pt-3 grid grid-cols-2 gap-y-2 text-[10px] text-[#5c544d]">
+                        <div><span className="text-[#8a7d6a]">Furnishing:</span> <strong className="text-[#2c2724] block mt-0.5">{listing.furnishing}</strong></div>
+                        <div><span className="text-[#8a7d6a]">Transit:</span> <strong className="text-[#2c2724] block mt-0.5">{listing.transit}</strong></div>
+                        <div className="col-span-2"><span className="text-[#8a7d6a]">Move-in Date:</span> <strong className="text-[#2c2724] block mt-0.5">{listing.moveIn}</strong></div>
+                      </div>
                     </div>
-                    <Link href="/signup" className="text-xs font-bold bg-[#cfa052] text-white px-5 py-2.5 rounded-xl hover:bg-[#b58942] transition-colors flex items-center gap-2">
-                      Make an Inquiry <ArrowRight className="h-4 w-4" />
-                    </Link>
-                  </div>
-                </div>
-              </TiltCard>
-            </motion.div>
 
-            {/* Vancouver Townhouse — tall, 2 rows */}
-            <motion.div variants={fadeUpItem} className="md:row-span-2 h-full">
-              <TiltCard tiltMax={4} className="h-full w-full rounded-[2rem] overflow-hidden border-2 border-white bg-white shadow-[0_20px_40px_rgba(44,39,36,0.06)] relative group">
-                <div className="absolute inset-0 img-zoom-container">
-                  <img src="/images/vancouver_townhouse.png" alt="Vancouver Townhouse" className="w-full h-full object-cover" />
-                </div>
-                <div className="absolute inset-0 bg-gradient-to-t from-[#2c2724]/90 via-[#2c2724]/10 to-transparent" />
-                <div className="absolute bottom-0 left-0 right-0 p-6 text-white z-10">
-                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#cfa052]">{floorPlanPreviews[1].type}</span>
-                  <h3 className="font-serif font-black text-xl mt-2">{floorPlanPreviews[1].title}</h3>
-                  <p className="text-[10px] opacity-90 mt-1 mb-4">{floorPlanPreviews[1].city}, Canada</p>
-                  <div className="pt-4 border-t border-white/20 flex justify-between items-end">
-                    <div>
-                      <span className="text-[9px] opacity-70 uppercase block tracking-widest">Monthly</span>
-                      <span className="font-black text-lg">CAD ${floorPlanPreviews[1].rent}</span>
+                    <div className="space-y-3 pt-2">
+                      {/* Lifestyle Tags */}
+                      <div className="flex flex-wrap gap-1.5">
+                        {listing.tags.map((tag) => (
+                          <span key={tag} className="text-[9px] font-extrabold bg-[#f4efe6] text-[#8a7d6a] px-2 py-0.5 rounded-md">
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+
+                      {/* Footer Details */}
+                      <div className="flex items-center justify-between pt-3 border-t border-[#f4efe6]">
+                        <div>
+                          <span className="text-[9px] text-[#8a7d6a] uppercase tracking-wider block">Monthly Rent</span>
+                          <span className="font-black text-base text-[#2c2724]">{listing.currency === "GBP" ? "£" : listing.currency === "AED" ? "AED " : "$"}{listing.rent}</span>
+                        </div>
+                        <Link href="/signup" className="text-[10px] font-extrabold bg-[#cfa052] hover:bg-[#b58942] text-white px-4 py-2.5 rounded-xl transition-all duration-300 flex items-center gap-1">
+                          Inquire <ArrowRight className="h-3 w-3" />
+                        </Link>
+                      </div>
                     </div>
-                    <button className="bg-white/20 hover:bg-white/30 backdrop-blur-md p-2 rounded-xl transition-colors">
-                      <ArrowRight className="h-4 w-4" />
-                    </button>
                   </div>
-                </div>
-              </TiltCard>
-            </motion.div>
+                </TiltCard>
+              </motion.div>
+            ))}
 
-            {/* Montreal Studio */}
+            {/* CTA Card */}
             <motion.div variants={fadeUpItem} className="h-full">
-              <TiltCard tiltMax={4} className="h-full w-full rounded-[2rem] overflow-hidden border-2 border-white bg-white shadow-[0_20px_40px_rgba(44,39,36,0.06)] relative group">
-                <div className="absolute inset-0 img-zoom-container">
-                  <img src="/images/montreal_studio.png" alt="Montreal Studio" className="w-full h-full object-cover" />
-                </div>
-                <div className="absolute inset-0 bg-gradient-to-t from-[#2c2724]/80 via-transparent to-transparent" />
-                <div className="absolute bottom-0 left-0 right-0 p-5 text-white z-10">
-                  <span className="text-[9px] font-extrabold uppercase tracking-wider text-[#cfa052]">{floorPlanPreviews[2].type}</span>
-                  <h3 className="font-serif font-black text-lg mt-1">{floorPlanPreviews[2].title}</h3>
-                  <div className="flex justify-between items-end mt-3 pt-3 border-t border-white/20">
-                    <span className="font-black text-base">CAD ${floorPlanPreviews[2].rent}</span>
-                    <span className="text-[10px] opacity-80">{floorPlanPreviews[2].city}</span>
-                  </div>
-                </div>
-              </TiltCard>
-            </motion.div>
-
-            {/* Info Card */}
-            <motion.div variants={fadeUpItem} className="h-full">
-              <TiltCard tiltMax={4} className="h-full w-full rounded-[2rem] border border-[#eae1d3] bg-[#fdfbf7] shadow-[0_15px_40px_rgba(44,39,36,0.03)] p-8 flex flex-col justify-center items-center text-center">
+              <TiltCard tiltMax={3} className="h-full min-h-[400px] w-full rounded-[2rem] border border-[#eae1d3] bg-[#fdfbf7] shadow-[0_12px_30px_rgba(44,39,36,0.03)] p-8 flex flex-col justify-center items-center text-center">
                 <div className="h-14 w-14 bg-[#eae1d3] rounded-full flex items-center justify-center text-[#cfa052] mb-4 border border-[#cfa052]/20">
                   <Search className="h-6 w-6" />
                 </div>
                 <h3 className="font-serif text-xl font-black text-[#2c2724] mb-2">Looking for more?</h3>
-                <p className="text-[11px] text-[#5c544d] max-w-xs mb-6">Create a verified profile to unlock hundreds of exclusive, title-vetted properties across Canada.</p>
+                <p className="text-[11px] text-[#5c544d] max-w-xs mb-6">Create a verified profile to unlock hundreds of exclusive, title-vetted properties globally.</p>
                 <Link href="/signup" className="text-xs font-bold text-[#cfa052] border-b border-[#cfa052] pb-0.5 hover:text-[#b58942] hover:border-[#b58942] transition-colors">
                   View All Properties
                 </Link>
@@ -535,39 +592,152 @@ export default function HomePage() {
 
       {/* ═══ 11. FOUNDER'S MESSAGE ═════════════════════════════════ */}
       <section className="py-32 px-4 sm:px-6 lg:px-8 bg-white relative overflow-hidden">
-        <div className="max-w-4xl mx-auto text-center space-y-8 relative z-10">
-          <motion.div initial={{ opacity: 0, y: 15 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.7 }}>
-            <div className="inline-flex items-center justify-center space-x-2 text-[10px] text-[#cfa052] font-extrabold uppercase tracking-widest mb-8">
-              <Heart className="h-3.5 w-3.5" /><span>Founder&apos;s Story</span>
+        <div className="max-w-4xl mx-auto space-y-12 relative z-10">
+          <motion.div initial={{ opacity: 0, y: 15 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.7 }} className="text-center">
+            <h2 className="font-serif text-3xl sm:text-4xl font-bold text-[#2c2724] tracking-tight mb-3">For Immigrants, By Immigrants.</h2>
+            <p className="text-[#8a7d6a] text-lg font-medium">A Platform Built From Real Relocation Struggles.</p>
+          </motion.div>
+          
+          <motion.div initial={{ opacity: 0, y: 15 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.2 }} className="bg-[#fdfbf7] rounded-3xl border border-[#eae1d3] p-8 sm:p-12 shadow-sm relative">
+            <div className="absolute top-8 left-8 text-[#cfa052]/20">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M14.017 21L16.41 14.286H11.532C11.532 12.046 12.87 11.233 14.524 10.952L15.358 10.826V5.414L14.492 5.485C10.024 5.86 7.973 8.358 7.973 12.657V21H14.017ZM24 21L26.393 14.286H21.515C21.515 12.046 22.853 11.233 24.507 10.952L25.341 10.826V5.414L24.475 5.485C20.007 5.86 17.956 8.358 17.956 12.657V21H24Z" transform="translate(-7.973 -5.414)"/></svg>
             </div>
-            <blockquote className="font-serif text-2xl sm:text-3xl text-[#2c2724] italic leading-relaxed max-w-3xl mx-auto">
-              &ldquo;When I first moved abroad, I experienced the housing struggle that many immigrants silently go through. I faced ignored inquiries, fake landlords, and massive stress trying to secure a safe roof over my head. NestArrival is built from these struggles to guarantee that finding a home in a new country never feels impossible.&rdquo;
-            </blockquote>
-            <div className="mt-10">
-              <div className="w-12 h-1 bg-[#cfa052] mx-auto mb-6 rounded-full opacity-50" />
-              <p className="font-extrabold text-sm text-[#2c2724]">Royal Singh</p>
-              <p className="text-[10px] text-[#8a7d6a] font-bold uppercase tracking-wider mt-1">Founder & CEO, NestArrival</p>
+            
+            <div className="space-y-6 text-[#5c544d] text-sm sm:text-base leading-relaxed relative z-10 font-serif italic">
+              <p>When I first moved abroad, I experienced the reality that many immigrants silently go through. Finding accommodation in a new country was not simple. I faced unanswered messages, uncertainty, fake listings, communication barriers, and the stress of trying to secure a safe place to live while being thousands of miles away from my destination.</p>
+              
+              <p>Over the next 4–5 years, while moving between provinces, cities, and even countries, I realized this problem was much bigger than just my personal experience. Millions of international students, workers, immigrants, and relocating families face the same struggle every single day. Most rental platforms are not designed for people moving internationally. Newcomers are often ignored simply because they do not yet have local history, references, or connections.</p>
+              
+              <p>That experience inspired me to build NestArrival. NestArrival was created to make relocation safer, simpler, and more trusted for people starting a new chapter abroad. Our goal is not only to help people find accommodation. Our goal is to help people feel secure during one of the biggest transitions of their lives.</p>
+              
+              <div className="pl-6 border-l-2 border-[#cfa052] my-6 py-2 not-italic">
+                <p className="font-bold text-[#2c2724] mb-3">We want newcomers to feel:</p>
+                <ul className="space-y-2 text-sm font-medium">
+                  <li className="flex items-center gap-2"><CheckCircle className="h-4 w-4 text-[#cfa052]"/> Supported</li>
+                  <li className="flex items-center gap-2"><CheckCircle className="h-4 w-4 text-[#cfa052]"/> Understood</li>
+                  <li className="flex items-center gap-2"><CheckCircle className="h-4 w-4 text-[#cfa052]"/> Safe</li>
+                  <li className="flex items-center gap-2"><CheckCircle className="h-4 w-4 text-[#cfa052]"/> Confident before they arrive</li>
+                </ul>
+              </div>
+              
+              <p>This platform is being built with real immigrant experiences at its foundation. Every feature, every connection, and every step of the process is designed around trust, transparency, and creating a better relocation journey.</p>
+              
+              <p>This is only the beginning. Our long-term vision is to build a globally connected accommodation ecosystem that helps people move across borders with confidence and peace of mind. No matter where someone comes from or where they are moving, finding a home should never feel impossible.</p>
+            </div>
+            
+            <div className="mt-12 flex flex-col sm:flex-row items-start sm:items-center justify-between border-t border-[#eae1d3] pt-8 gap-6">
+              <div className="flex items-center gap-4">
+                <div className="h-16 w-16 rounded-full bg-[#eae1d3] overflow-hidden border-2 border-white shadow-md flex items-center justify-center relative">
+                  <img src="/images/royal_singh.png" alt="Royal Singh" className="absolute inset-0 h-full w-full object-cover z-10" onError={(e) => e.currentTarget.style.display = 'none'} />
+                  <span className="text-[#cfa052] font-bold text-xl relative z-0">RS</span>
+                </div>
+                <div>
+                  <p className="font-extrabold text-[#2c2724] text-lg">Royal Singh</p>
+                  <p className="text-[11px] text-[#8a7d6a] font-bold uppercase tracking-wider">Founder, NestArrival</p>
+                </div>
+              </div>
+              <a href="#" className="h-10 w-10 rounded-full bg-white border border-[#eae1d3] flex items-center justify-center text-[#8a7d6a] hover:text-[#0a66c2] hover:border-[#0a66c2] transition-colors shadow-sm shrink-0">
+                <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z" />
+                  <rect x="2" y="9" width="4" height="12" />
+                  <circle cx="4" cy="4" r="2" />
+                </svg>
+              </a>
             </div>
           </motion.div>
         </div>
       </section>
 
-      {/* ═══ 15. CTA ═══════════════════════════════════════════════ */}
+      {/* ═══ 14. PARTNERS & COLLABORATIONS ════════════════════════ */}
+      <section className="py-28 px-4 sm:px-6 lg:px-8 bg-[#fdfbf7] border-t border-[#eae1d3]/50">
+        <div className="max-w-6xl mx-auto space-y-12">
+          <div className="text-center max-w-3xl mx-auto space-y-3">
+            <span className="text-[10px] text-[#cfa052] font-extrabold uppercase tracking-widest block">Partners & Collaborations</span>
+            <h2 className="font-serif text-3xl font-bold text-[#2c2724] tracking-tight">
+              Building a Trusted Global Relocation Ecosystem Together.
+            </h2>
+            <p className="text-xs text-[#8a7d6a] max-w-xl mx-auto leading-relaxed">
+              We collaborate with key organizations globally to bridge verification gaps, making housing secure and stress-free for relocators.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {[
+              {
+                icon: GraduationCap,
+                title: "Educational Institutions",
+                desc: "Securing student relocations prior to departure by vetting local student units."
+              },
+              {
+                icon: ShieldCheck,
+                title: "Immigration Consultants",
+                desc: "Vetting documentation chains to provide early relocation housing clearances."
+              },
+              {
+                icon: Building,
+                title: "Property Owners",
+                desc: "Ensuring land titles map cleanly, providing zero-scam rental opportunities."
+              },
+              {
+                icon: Briefcase,
+                title: "Realtors & Housing Providers",
+                desc: "Connecting vetted property managers with high-intent international professionals."
+              }
+            ].map((partner, idx) => {
+              const Icon = partner.icon;
+              return (
+                <motion.div
+                  key={idx}
+                  initial={{ opacity: 0, y: 15 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: idx * 0.1 }}
+                  viewport={{ once: true }}
+                  className="bg-white p-6 rounded-2xl border border-[#eae1d3] shadow-sm space-y-4 hover:shadow-md hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between"
+                >
+                  <div className="space-y-3">
+                    <div className="inline-flex p-3 rounded-xl bg-[#f4efe6] text-[#cfa052]">
+                      <Icon className="h-5 w-5" />
+                    </div>
+                    <h3 className="text-xs font-black text-[#2c2724]">{partner.title}</h3>
+                    <p className="text-[10px] text-[#8a7d6a] leading-relaxed">
+                      {partner.desc}
+                    </p>
+                  </div>
+                </motion.div>
+              );
+            })}
+          </div>
+
+          <div className="flex justify-center pt-8">
+            <Link href="/contact?role=partner" className="text-xs font-bold bg-[#2c2724] hover:bg-[#cfa052] text-white px-8 py-3.5 rounded-full transition-all duration-300 shadow-sm flex items-center gap-2 group hover:scale-105">
+              Partner With Us
+              <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* ═══ 15. EARLY ACCESS CTA ══════════════════════════════════ */}
       <section className="relative py-32 px-4 bg-[#cfa052] text-white text-center overflow-hidden">
         <div className="absolute inset-0 opacity-10 bg-[url('/images/toronto_loft.png')] bg-cover bg-center mix-blend-overlay" />
         <div className="absolute inset-0 bg-gradient-to-t from-[#2c2724]/90 to-transparent" />
         
         <div className="max-w-4xl mx-auto space-y-8 relative z-10">
-          <h2 className="font-serif text-4xl sm:text-5xl font-bold text-white tracking-tight leading-tight">Schedule Your Relocation Today.</h2>
+          <span className="text-[10px] text-white font-extrabold uppercase tracking-widest bg-white/10 px-3.5 py-1.5 rounded-full inline-block border border-white/20">
+            Early Access Waitlist
+          </span>
+          <h2 className="font-serif text-4xl sm:text-5xl font-bold text-white tracking-tight leading-tight">
+            Schedule Your Relocation Today.
+          </h2>
           <p className="text-sm text-white/80 max-w-xl mx-auto leading-relaxed">
-            Register and complete your identity and visa vetting checks. Settle accommodation details with verified property owners before boarding.
+            Get priority access to vetted rentals, automated relocation matches, and early-stage immigration support. Experience relocation built on trust.
           </p>
           <div className="flex flex-col sm:flex-row items-center gap-4 justify-center text-xs font-bold pt-4">
-            <Link href="/signup" className="w-full sm:w-auto rounded-2xl bg-white text-[#2c2724] px-10 py-4 hover:bg-[#fdfbf7] transition-colors shadow-xl font-extrabold">
-              Sign Up as Relocator
+            <Link href="/signup" className="w-full sm:w-auto rounded-2xl bg-white text-[#2c2724] px-10 py-4 hover:bg-[#fdfbf7] transition-all duration-300 shadow-xl font-extrabold hover:scale-105">
+              Find My Future Home
             </Link>
-            <Link href="/signup?role=owner" className="w-full sm:w-auto rounded-2xl bg-transparent text-white border border-white/30 px-10 py-4 hover:bg-white/10 transition-colors">
-              Register Property
+            <Link href="/signup?early_access=true" className="w-full sm:w-auto rounded-2xl bg-transparent text-white border border-white/30 px-10 py-4 hover:bg-white/10 transition-all duration-300 hover:scale-105">
+              Join Early Access
             </Link>
           </div>
         </div>
