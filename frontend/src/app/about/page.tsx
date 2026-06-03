@@ -71,7 +71,7 @@ const faqData = [
   },
   {
     q: "What happens if property owners do not respond?",
-    a: "NestArrival operates with a trust-first approach. If the platform is unable to successfully help tenants receive proper owner responses or meaningful accommodation connections, the platform fee may be refunded according to platform policies."
+    a: "NestArrival operates with a trust-first approach. A refund is available if none of the verified owners you contacted reply to your messages within your active subscription period. A valid response means the verified owner replies to your message through the NestArrival chat within your active plan period. An automated reply or an out-of-office message does not count as a response."
   },
   {
     q: "Can I search for housing before arriving in the country?",
@@ -236,6 +236,10 @@ export default function AboutPage() {
                 <div className="flex flex-col gap-0.5">
                   <span className="text-[#cfa052] font-bold text-[11px] uppercase tracking-wide">🔐 Encryption</span>
                   <span className="text-[#8a7d6a]">All identity documents are encrypted and audited manually by verification managers.</span>
+                </div>
+                <div className="flex flex-col gap-0.5">
+                  <span className="text-[#cfa052] font-bold text-[11px] uppercase tracking-wide">🛡️ Compliance</span>
+                  <span className="text-[#8a7d6a]">Verification is carried out by NestArrival&apos;s internal team. All team members are trained in document handling and privacy compliance. Verification typically takes 1–3 business days.</span>
                 </div>
               </div>
             </div>

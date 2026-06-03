@@ -63,7 +63,28 @@ async function main() {
       content: `# Terms & Conditions
 Last updated: June 1, 2026
 
-Welcome to NestArrival. By accessing our platform, you agree to comply with and be bound by these Terms & Conditions. NestArrival acts strictly as a connection layer and does not guarantee tenancy, property condition, or renter actions.`
+What this means in simple terms: You pay to contact verified owners. If no owner replies, you get a refund. We verify your documents securely. We do not sell your data. You must be at least 18 years old.
+
+## 1. Introduction
+Welcome to NestArrival. By accessing our platform, you agree to comply with and be bound by these Terms & Conditions. NestArrival operates as an international platform. Users are responsible for complying with the laws of their home country and destination.
+
+## 2. Age Requirement
+You must be at least 18 years old to create an account and use NestArrival's paid services.
+
+## 3. Verified Connection Platform
+NestArrival is a verified connection platform. We connect you with property owners but are not responsible for the terms of any tenancy agreement made between you and an owner.
+
+## 4. Refund Policy & Verification
+A refund is available if none of the verified owners you contacted reply to your messages within your active subscription period.
+
+A valid response means the verified owner replies to your message through the NestArrival chat within your active plan period. An automated reply or an out-of-office message does not count as a response.
+
+Verification is carried out by NestArrival's internal team. All team members are trained in document handling and privacy compliance. Verification typically takes 1–3 business days.
+
+Your passport and visa documents are used only for identity verification. They are encrypted, stored securely, and deleted after verification is complete. No documents are shared with third parties.
+
+## 5. Cancellation
+How to cancel: You can cancel your subscription at any time from your account settings. Cancellation takes effect at the end of your current billing period. You will not be charged again after cancellation.`
     },
     {
       id: "privacy",
@@ -71,7 +92,7 @@ Welcome to NestArrival. By accessing our platform, you agree to comply with and 
       content: `# Privacy Policy
 Last updated: June 1, 2026
 
-Your privacy is important to us. We collect and encrypt government IDs, residency proof, and lease records strictly for verification. Data is never shared with third parties without your explicit permission.`
+Your privacy is important to us. Your passport and visa documents are used only for identity verification. They are encrypted, stored securely, and deleted after verification is complete. No documents are shared with third parties.`
     },
     {
       id: "refund",
@@ -79,7 +100,11 @@ Your privacy is important to us. We collect and encrypt government IDs, residenc
       content: `# Refund Policy
 Last updated: June 1, 2026
 
-If a tenant purchases a subscription and receives zero (0) owner replies during their active billing cycle, they are eligible for a full refund of that billing period. All refund claims are moderated and processed within 5-7 business days.`
+A refund is available if none of the verified owners you contacted reply to your messages within your active subscription period.
+
+A valid response means the verified owner replies to your message through the NestArrival chat within your active plan period. An automated reply or an out-of-office message does not count as a response.
+
+All refund claims are moderated and processed within 3 business days.`
     },
     {
       id: "verification",
@@ -87,7 +112,9 @@ If a tenant purchases a subscription and receives zero (0) owner replies during 
       content: `# Verification Policy
 Last updated: June 1, 2026
 
-NestArrival enforces a verification-first policy. Owners must submit valid residency proof and land titles or property tax records. Tenants must submit proof of identity, visa status, or school/employment admission letters to unlock interactions.`
+Verification is carried out by NestArrival's internal team. All team members are trained in document handling and privacy compliance. Verification typically takes 1–3 business days.
+
+Your passport and visa documents are used only for identity verification. They are encrypted, stored securely, and deleted after verification is complete. No documents are shared with third parties.`
     },
     {
       id: "cookie",
@@ -121,7 +148,7 @@ We promote safety and respect. Discrimination, fraudulent documentation uploads,
       content: `# Cancellation Policy
 Last updated: June 1, 2026
 
-Tenants can cancel their active subscriptions at any time directly through their billing dashboard. Upon cancellation, your access remains active until the end of the current billing cycle. No further auto-renewals will be processed.`
+How to cancel: You can cancel your subscription at any time from your account settings. Cancellation takes effect at the end of your current billing period. You will not be charged again after cancellation.`
     }
   ];
 

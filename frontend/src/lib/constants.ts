@@ -11,7 +11,7 @@ export interface SubscriptionPlan {
 export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
   {
     id: "plan-1",
-    name: "Standard 14-Day",
+    name: "Starter",
     priceOneTime: 29,
     priceSub: 19,
     durationDays: 14,
@@ -20,7 +20,7 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
   },
   {
     id: "plan-2",
-    name: "Premium 30-Day",
+    name: "Mover",
     priceOneTime: 39,
     priceSub: 29,
     durationDays: 30,
@@ -29,7 +29,7 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
   },
   {
     id: "plan-3",
-    name: "Professional 45-Day",
+    name: "Relocator",
     priceOneTime: 69,
     priceSub: 49,
     durationDays: 45,
@@ -38,7 +38,7 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
   },
   {
     id: "plan-featured",
-    name: "Featured Elite",
+    name: "Priority",
     priceOneTime: 89,
     priceSub: 79,
     durationDays: 60, // Let's make elite plan 60 days
@@ -51,7 +51,7 @@ export const URGENT_MATCH_ADDON = {
   id: "urgent-match",
   name: "Urgent Housing Match",
   price: 99,
-  description: "Priority profile placement, featured listings layout, and accelerated match matching workflow.",
+  description: "Your profile gets shown at the top of the list when verified owners log in to browse tenants. This means they see you first and are more likely to connect.",
 };
 
 export const DEFAULT_ADMIN_CREDENTIALS = {

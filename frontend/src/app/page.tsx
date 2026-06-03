@@ -191,7 +191,7 @@ export default function HomePage() {
     { q: "What is NestArrival?", a: "NestArrival is a trust-first global relocation and accommodation platform. We help verified international tenants, immigrants, workers, and students safely connect with vetted property owners abroad before boarding their flight to their destination country." },
     { q: "Who can use NestArrival?", a: "Our platform is custom-built for international students, foreign workers, relocating families, permanent residents, and temporary newcomers moving across borders—starting with incoming relocators from third-world countries to Canada." },
     { q: "Is browsing and searching properties free?", a: "Yes! Searching and exploring rental opportunities is 100% free of charge. NestArrival only charges a platform connection fee when verified tenants connect directly with verified property owners to secure their accommodation." },
-    { q: "How does the refund-backed connection model work?", a: "We believe in absolute accountability. If NestArrival is unable to help you receive proper, meaningful replies from verified landlords within your matching parameters, your connection fee is automatically refunded in full." },
+    { q: "How does the refund-backed connection model work?", a: "We believe in absolute accountability. A refund is available if none of the verified owners you contacted reply to your messages within your active subscription period. A valid response means the verified owner replies to your message through the NestArrival chat within your active plan period. An automated reply or an out-of-office message does not count as a response." },
     { q: "Why is NestArrival different from other rental search platforms?", a: "Traditional platforms ignore international tenants, require local credit scores, or contain scams. NestArrival manual-vets landlord land titles and tenant visa details to guarantee zero overseas scams and responsive cross-border matches." },
     { q: "What documents do property owners need to verify?", a: "Property owners must upload passport or driver's license identification alongside verified local land title deeds or municipal property tax records to prove they legitimately own the property listed." },
   ];
@@ -411,7 +411,7 @@ export default function HomePage() {
             {[
               { icon: ShieldCheck, title: "Vetting-First Ecosystem", desc: "Both tenants and property owners submit legally verified documentations, eradicating fake listings, scams, and fraudulent accounts.", label: "01 / Safety First" },
               { icon: Users, title: "Personalized Matching", desc: "Matches are facilitated based on move-in date alignment, student/worker preferences, budget constraints, and locations.", label: "02 / Smart Match" },
-              { icon: DollarSign, title: "Refund Guarantee Assurance", desc: "If NestArrival is unable to secure responses or active connections with vetted owners, we refund your platform fee in full.", label: "03 / Guaranteed Risk-Free" },
+              { icon: DollarSign, title: "Refund Guarantee Assurance", desc: "A refund is available if none of the verified owners you contacted reply to your messages within your active subscription period.", label: "03 / Guaranteed Risk-Free" },
             ].map((card) => (
               <motion.div key={card.title} variants={fadeUpItem}
                 className="bg-white p-7 rounded-3xl border border-[#eae1d3] shadow-[0_8px_30px_rgba(44,39,36,0.04)] space-y-4 flex flex-col justify-between h-72 hover-lift group">
