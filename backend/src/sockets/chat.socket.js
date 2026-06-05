@@ -42,33 +42,49 @@ function initChatSocket(io) {
 
   io.on("connection", (socket) => {
     socket.on("joinRoom", async ({ roomId }) => {
-      if (!roomId) return;
+      try {
+        if (!roomId) return;
 
-      const room = await prisma.chatRoom.findUnique({ where: { id: roomId } });
-      if (!room) return;
-      if (room.tenantId !== socket.user.id && room.ownerId !== socket.user.id)
-        return;
+        const room = await prisma.chatRoom.findUnique({
+          where: { id: roomId },
+        });
+        if (!room) return;
+        if (room.tenantId !== socket.user.id && room.ownerId !== socket.user.id)
+          return;
 
-      socket.join(roomId);
+        socket.join(roomId);
+      } catch (err) {
+        console.error("Error joining room:", err);
+      }
     });
 
     socket.on("sendMessage", async ({ roomId, content }) => {
-      if (!roomId || !content || !String(content).trim()) return;
+      try {
+        if (!roomId || !content || !String(content).trim()) return;
 
-      const room = await prisma.chatRoom.findUnique({ where: { id: roomId } });
-      if (!room) return;
-      if (room.tenantId !== socket.user.id && room.ownerId !== socket.user.id)
-        return;
+        const room = await prisma.chatRoom.findUnique({
+          where: { id: roomId },
+        });
+        if (!room) return;
+        if (room.tenantId !== socket.user.id && room.ownerId !== socket.user.id)
+          return;
 
-      const msg = await prisma.chatMessage.create({
-        data: {
-          roomId,
-          senderId: socket.user.id,
-          content: String(content).trim(),
-        },
-      });
+        const msg = await prisma.chatMessage.create({
+          data: {
+            roomId,
+            senderId: socket.user.id,
+            content: String(content).trim(),
+          },
+          include: {
+            sender: { select: { id: true, fullName: true } },
+          },
+        });
 
-      io.to(roomId).emit("message", msg);
+        io.to(roomId).emit("message", msg);
+      } catch (err) {
+        console.error("Error sending message:", err.message);
+        socket.emit("error", { message: "Failed to send message" });
+      }
     });
   });
 }
