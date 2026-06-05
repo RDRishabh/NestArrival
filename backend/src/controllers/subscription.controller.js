@@ -6,7 +6,18 @@ const {
 
 exports.createSubscription = async (req, res) => {
   try {
+    // Validate authentication
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ error: "Authentication required" });
+    }
+
     const { planId, type, purchaseUrgentMatch } = req.body;
+
+    // Validate planId
+    if (!planId || typeof planId !== "string") {
+      return res.status(400).json({ error: "Valid plan ID is required" });
+    }
+
     const plan = SUBSCRIPTION_PLANS.find((p) => p.id === planId);
     if (!plan) {
       return res
@@ -14,17 +25,26 @@ exports.createSubscription = async (req, res) => {
         .json({ error: "Invalid subscription package selected" });
     }
 
+    // Validate subscription type
     const normalizedType = String(type || "SUBSCRIPTION").toUpperCase();
     const isSubscription = normalizedType === "SUBSCRIPTION";
     if (!["SUBSCRIPTION", "ONE_TIME"].includes(normalizedType)) {
       return res.status(400).json({ error: "Invalid subscription type" });
     }
 
+    // Validate price values
     const purchaseUrgent =
       purchaseUrgentMatch === true || purchaseUrgentMatch === "true";
     let finalPrice = isSubscription ? plan.priceSub : plan.priceOneTime;
+    if (!Number.isFinite(finalPrice) || finalPrice <= 0) {
+      return res.status(500).json({ error: "Invalid pricing configuration" });
+    }
+
     if (purchaseUrgent) {
       finalPrice += URGENT_MATCH_ADDON.price;
+      if (!Number.isFinite(finalPrice) || finalPrice <= 0) {
+        return res.status(500).json({ error: "Invalid pricing configuration" });
+      }
     }
 
     const startDate = new Date();
@@ -122,44 +142,84 @@ exports.createSubscription = async (req, res) => {
 
 exports.getSubscriptions = async (req, res) => {
   try {
-    const page = parseInt(req.query.page) || 1;
-    const limit = Math.min(parseInt(req.query.limit) || 20, 100);
+    // Validate authentication
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ error: "Authentication required" });
+    }
+
+    // Validate and sanitize pagination parameters
+    let page = parseInt(req.query.page, 10);
+    let limit = parseInt(req.query.limit, 10);
+
+    if (!Number.isInteger(page) || page < 1) {
+      page = 1;
+    }
+    if (!Number.isInteger(limit) || limit < 1) {
+      limit = 20;
+    }
+    limit = Math.min(limit, 100);
+
     const skip = (page - 1) * limit;
-    const list = await prisma.subscription.findMany({
-      where: { userId: req.user.id },
-      orderBy: { createdAt: "desc" },
-      skip,
-      take: limit,
-    });
-    const total = await prisma.subscription.count({
-      where: { userId: req.user.id },
-    });
-    res.json({ subscriptions: list, page, limit, total });
+    const whereClause = { userId: req.user.id };
+
+    // Fetch subscriptions and total count in parallel
+    const [subscriptions, total] = await Promise.all([
+      prisma.subscription.findMany({
+        where: whereClause,
+        orderBy: { createdAt: "desc" },
+        skip,
+        take: limit,
+      }),
+      prisma.subscription.count({ where: whereClause }),
+    ]);
+
+    res.json({ subscriptions, page, limit, total });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error("Subscriptions fetch error:", err);
+    res.status(500).json({
+      error: "Unable to retrieve subscriptions. Please try again.",
+    });
   }
 };
 
 exports.createRefundRequest = async (req, res) => {
   try {
+    // Validate authentication
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ error: "Authentication required" });
+    }
+
     const { subscriptionId, reason } = req.body;
-    if (!subscriptionId || !reason) {
-      return res.status(400).json({
-        error: "Subscription ID and refund reason are required",
-      });
+
+    // Validate required fields
+    if (!subscriptionId || typeof subscriptionId !== "string") {
+      return res
+        .status(400)
+        .json({ error: "Valid subscription ID is required" });
+    }
+    if (!reason || typeof reason !== "string") {
+      return res.status(400).json({ error: "Refund reason is required" });
     }
 
     // Validate reason field
-    const trimmedReason = String(reason).trim();
-    if (!trimmedReason || trimmedReason.length > 500) {
+    const trimmedReason = reason.trim();
+    if (trimmedReason.length === 0 || trimmedReason.length > 500) {
       return res.status(400).json({
         error: "Reason must be between 1 and 500 characters",
       });
     }
 
-    const sub = await prisma.subscription.findUnique({
-      where: { id: subscriptionId },
-    });
+    // Fetch subscription and duplicate check in parallel
+    const [sub, duplicate] = await Promise.all([
+      prisma.subscription.findUnique({
+        where: { id: subscriptionId },
+      }),
+      prisma.refundRequest.findFirst({
+        where: { subscriptionId },
+      }),
+    ]);
+
+    // Validate subscription ownership
     if (!sub || sub.userId !== req.user.id) {
       return res.status(403).json({ error: "Forbidden" });
     }
@@ -168,6 +228,13 @@ exports.createRefundRequest = async (req, res) => {
     if (!sub.isActive) {
       return res.status(400).json({
         error: "Cannot refund inactive subscription",
+      });
+    }
+
+    // Validate subscription has valid startDate
+    if (!sub.startDate || !(sub.startDate instanceof Date)) {
+      return res.status(500).json({
+        error: "Invalid subscription data. Please contact support.",
       });
     }
 
@@ -181,15 +248,13 @@ exports.createRefundRequest = async (req, res) => {
     }
 
     // Check for duplicate refund request
-    const duplicate = await prisma.refundRequest.findFirst({
-      where: { subscriptionId },
-    });
     if (duplicate) {
       return res.status(400).json({
         error: "Refund claim already filed for this subscription",
       });
     }
 
+    // Create refund request
     await prisma.refundRequest.create({
       data: {
         userId: req.user.id,
