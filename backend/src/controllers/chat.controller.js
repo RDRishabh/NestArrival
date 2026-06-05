@@ -1,9 +1,16 @@
 const { prisma } = require("../config/db");
+const {
+  chatQuerySchema,
+  chatMessagesQuerySchema,
+  sendMessageSchema,
+  initiateChatSchema,
+} = require("../schemas/validation");
 
 exports.getRooms = async (req, res) => {
   try {
-    const page = Math.max(Number(req.query.page) || 1, 1);
-    const limit = Math.min(Math.max(Number(req.query.limit) || 20, 1), 100);
+    // Validate pagination parameters using Zod
+    const validated = chatQuerySchema.parse(req.query);
+    const { page, limit } = validated;
     const skip = (page - 1) * limit;
 
     const where =
@@ -44,18 +51,27 @@ exports.getRooms = async (req, res) => {
 
     res.json({ total, page, limit, rooms });
   } catch (err) {
+    // Handle Zod validation errors
+    if (err.name === "ZodError") {
+      const errors = err.errors.map((e) => ({
+        field: e.path.join("."),
+        message: e.message,
+      }));
+      return res
+        .status(400)
+        .json({ error: "Validation failed", details: errors });
+    }
     res.status(500).json({ error: err.message });
   }
 };
 
 exports.getMessages = async (req, res) => {
   try {
-    const { roomId, page = 1, limit = 50 } = req.query;
-    if (!roomId) return res.status(400).json({ error: "roomId is required" });
+    // Validate input using Zod schema
+    const validated = chatMessagesQuerySchema.parse(req.query);
+    const { roomId, page, limit } = validated;
 
-    const pageNumber = Math.max(Number(page) || 1, 1);
-    const pageSize = Math.min(Math.max(Number(limit) || 50, 1), 100);
-    const skip = (pageNumber - 1) * pageSize;
+    const skip = (page - 1) * limit;
 
     const room = await prisma.chatRoom.findUnique({
       where: { id: String(roomId) },
@@ -74,24 +90,31 @@ exports.getMessages = async (req, res) => {
         include: { sender: { select: { id: true, fullName: true } } },
         orderBy: { createdAt: "asc" },
         skip,
-        take: pageSize,
+        take: limit,
       }),
     ]);
 
-    res.json({ total, page: pageNumber, limit: pageSize, messages });
+    res.json({ total, page, limit, messages });
   } catch (err) {
+    // Handle Zod validation errors
+    if (err.name === "ZodError") {
+      const errors = err.errors.map((e) => ({
+        field: e.path.join("."),
+        message: e.message,
+      }));
+      return res
+        .status(400)
+        .json({ error: "Validation failed", details: errors });
+    }
     res.status(500).json({ error: err.message });
   }
 };
 
 exports.sendMessage = async (req, res) => {
   try {
-    const { roomId, content } = req.body;
-    if (!roomId || !content || !String(content).trim()) {
-      return res
-        .status(400)
-        .json({ error: "Room ID and message content are required" });
-    }
+    // Validate input using Zod schema
+    const validated = sendMessageSchema.parse(req.body);
+    const { roomId, content } = validated;
 
     const room = await prisma.chatRoom.findUnique({ where: { id: roomId } });
     if (
@@ -114,18 +137,25 @@ exports.sendMessage = async (req, res) => {
 
     res.json(msg);
   } catch (err) {
+    // Handle Zod validation errors
+    if (err.name === "ZodError") {
+      const errors = err.errors.map((e) => ({
+        field: e.path.join("."),
+        message: e.message,
+      }));
+      return res
+        .status(400)
+        .json({ error: "Validation failed", details: errors });
+    }
     res.status(500).json({ error: err.message });
   }
 };
 
 exports.initiateChat = async (req, res) => {
   try {
-    const { listingId, firstMessage } = req.body;
-    if (!listingId || !firstMessage || !String(firstMessage).trim()) {
-      return res
-        .status(400)
-        .json({ error: "Listing ID and intro message are required" });
-    }
+    // Validate input using Zod schema
+    const validated = initiateChatSchema.parse(req.body);
+    const { listingId, firstMessage } = validated;
 
     const listing = await prisma.listing.findUnique({
       where: { id: listingId },
@@ -224,6 +254,16 @@ exports.initiateChat = async (req, res) => {
       throw err;
     }
   } catch (err) {
+    // Handle Zod validation errors
+    if (err.name === "ZodError") {
+      const errors = err.errors.map((e) => ({
+        field: e.path.join("."),
+        message: e.message,
+      }));
+      return res
+        .status(400)
+        .json({ error: "Validation failed", details: errors });
+    }
     res.status(500).json({ error: err.message });
   }
 };

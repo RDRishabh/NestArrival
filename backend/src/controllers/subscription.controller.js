@@ -3,6 +3,11 @@ const {
   SUBSCRIPTION_PLANS,
   URGENT_MATCH_ADDON,
 } = require("../utils/constants");
+const {
+  createSubscriptionSchema,
+  subscriptionQuerySchema,
+  createRefundRequestSchema,
+} = require("../schemas/validation");
 
 exports.createSubscription = async (req, res) => {
   try {
@@ -11,12 +16,9 @@ exports.createSubscription = async (req, res) => {
       return res.status(401).json({ error: "Authentication required" });
     }
 
-    const { planId, type, purchaseUrgentMatch } = req.body;
-
-    // Validate planId
-    if (!planId || typeof planId !== "string") {
-      return res.status(400).json({ error: "Valid plan ID is required" });
-    }
+    // Validate input using Zod schema
+    const validated = createSubscriptionSchema.parse(req.body);
+    const { planId, type, purchaseUrgentMatch } = validated;
 
     const plan = SUBSCRIPTION_PLANS.find((p) => p.id === planId);
     if (!plan) {
@@ -28,9 +30,6 @@ exports.createSubscription = async (req, res) => {
     // Validate subscription type
     const normalizedType = String(type || "SUBSCRIPTION").toUpperCase();
     const isSubscription = normalizedType === "SUBSCRIPTION";
-    if (!["SUBSCRIPTION", "ONE_TIME"].includes(normalizedType)) {
-      return res.status(400).json({ error: "Invalid subscription type" });
-    }
 
     // Validate price values
     const purchaseUrgent =
@@ -121,6 +120,16 @@ exports.createSubscription = async (req, res) => {
 
     res.json({ message: `Successfully purchased ${plan.name}!` });
   } catch (err) {
+    // Handle Zod validation errors
+    if (err.name === "ZodError") {
+      const errors = err.errors.map((e) => ({
+        field: e.path.join("."),
+        message: e.message,
+      }));
+      return res
+        .status(400)
+        .json({ error: "Validation failed", details: errors });
+    }
     if (err.message.includes("PAYMENT_NOT_IMPLEMENTED")) {
       return res.status(501).json({
         error:
@@ -147,17 +156,9 @@ exports.getSubscriptions = async (req, res) => {
       return res.status(401).json({ error: "Authentication required" });
     }
 
-    // Validate and sanitize pagination parameters
-    let page = parseInt(req.query.page, 10);
-    let limit = parseInt(req.query.limit, 10);
-
-    if (!Number.isInteger(page) || page < 1) {
-      page = 1;
-    }
-    if (!Number.isInteger(limit) || limit < 1) {
-      limit = 20;
-    }
-    limit = Math.min(limit, 100);
+    // Validate and sanitize pagination parameters using Zod
+    const validated = subscriptionQuerySchema.parse(req.query);
+    const { page, limit } = validated;
 
     const skip = (page - 1) * limit;
     const whereClause = { userId: req.user.id };
@@ -175,6 +176,16 @@ exports.getSubscriptions = async (req, res) => {
 
     res.json({ subscriptions, page, limit, total });
   } catch (err) {
+    // Handle Zod validation errors
+    if (err.name === "ZodError") {
+      const errors = err.errors.map((e) => ({
+        field: e.path.join("."),
+        message: e.message,
+      }));
+      return res
+        .status(400)
+        .json({ error: "Validation failed", details: errors });
+    }
     console.error("Subscriptions fetch error:", err);
     res.status(500).json({
       error: "Unable to retrieve subscriptions. Please try again.",
@@ -189,25 +200,9 @@ exports.createRefundRequest = async (req, res) => {
       return res.status(401).json({ error: "Authentication required" });
     }
 
-    const { subscriptionId, reason } = req.body;
-
-    // Validate required fields
-    if (!subscriptionId || typeof subscriptionId !== "string") {
-      return res
-        .status(400)
-        .json({ error: "Valid subscription ID is required" });
-    }
-    if (!reason || typeof reason !== "string") {
-      return res.status(400).json({ error: "Refund reason is required" });
-    }
-
-    // Validate reason field
-    const trimmedReason = reason.trim();
-    if (trimmedReason.length === 0 || trimmedReason.length > 500) {
-      return res.status(400).json({
-        error: "Reason must be between 1 and 500 characters",
-      });
-    }
+    // Validate input using Zod schema
+    const validated = createRefundRequestSchema.parse(req.body);
+    const { subscriptionId, reason } = validated;
 
     // Fetch subscription and duplicate check in parallel
     const [sub, duplicate] = await Promise.all([
@@ -259,13 +254,23 @@ exports.createRefundRequest = async (req, res) => {
       data: {
         userId: req.user.id,
         subscriptionId,
-        reason: trimmedReason,
+        reason,
         status: "PENDING",
       },
     });
 
     res.json({ message: "Refund application submitted to auditing queue." });
   } catch (err) {
+    // Handle Zod validation errors
+    if (err.name === "ZodError") {
+      const errors = err.errors.map((e) => ({
+        field: e.path.join("."),
+        message: e.message,
+      }));
+      return res
+        .status(400)
+        .json({ error: "Validation failed", details: errors });
+    }
     console.error("Refund request error:", err);
     res.status(500).json({
       error: "Unable to submit refund request. Please try again.",

@@ -4,6 +4,13 @@ const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
 const { OAuth2Client } = require("google-auth-library");
 const { sendVerificationOtp } = require("../services/mail.service");
+const {
+  signupSchema,
+  loginSchema,
+  verifyOtpSchema,
+  googleAuthSchema,
+  resendOtpSchema,
+} = require("../schemas/validation");
 
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 const JWT_COOKIE_NAME = "nestarrival_session";
@@ -35,30 +42,10 @@ function setCookie(res, token) {
   });
 }
 
-function validatePassword(password) {
-  if (password.length < 8) {
-    return "Password must be at least 8 characters";
-  }
-  if (!/[A-Z]/.test(password)) {
-    return "Password must contain at least one uppercase letter";
-  }
-  if (!/[a-z]/.test(password)) {
-    return "Password must contain at least one lowercase letter";
-  }
-  if (!/[0-9]/.test(password)) {
-    return "Password must contain at least one number";
-  }
-  return null;
-}
-
 exports.signup = async (req, res) => {
   try {
-    const { email, password, fullName, role } = req.body;
-
-    const passwordError = validatePassword(password);
-    if (passwordError) {
-      return res.status(400).json({ error: passwordError });
-    }
+    const validated = signupSchema.parse(req.body);
+    const { email, password, fullName, role } = validated;
 
     const salt = await bcrypt.genSalt(10);
     const passwordHash = await bcrypt.hash(password, salt);
@@ -85,6 +72,16 @@ exports.signup = async (req, res) => {
       email: user.email,
     });
   } catch (err) {
+    // Handle Zod validation errors
+    if (err.name === "ZodError") {
+      const errors = err.errors.map((e) => ({
+        field: e.path.join("."),
+        message: e.message,
+      }));
+      return res
+        .status(400)
+        .json({ error: "Validation failed", details: errors });
+    }
     console.error("Signup error:", err);
     res.status(500).json({ error: "An error occurred during signup" });
   }
@@ -92,10 +89,8 @@ exports.signup = async (req, res) => {
 
 exports.login = async (req, res) => {
   try {
-    const { email, password } = req.body;
-    if (!email || !password) {
-      return res.status(400).json({ error: "Email and password are required" });
-    }
+    const validated = loginSchema.parse(req.body);
+    const { email, password } = validated;
 
     const user = await prisma.user.findUnique({
       where: { email: email.toLowerCase() },
@@ -149,6 +144,16 @@ exports.login = async (req, res) => {
       },
     });
   } catch (err) {
+    // Handle Zod validation errors
+    if (err.name === "ZodError") {
+      const errors = err.errors.map((e) => ({
+        field: e.path.join("."),
+        message: e.message,
+      }));
+      return res
+        .status(400)
+        .json({ error: "Validation failed", details: errors });
+    }
     console.error("Login error:", err);
     res.status(500).json({ error: "An error occurred during login" });
   }
@@ -156,10 +161,8 @@ exports.login = async (req, res) => {
 
 exports.googleLogin = async (req, res) => {
   try {
-    const { credential, role } = req.body;
-    if (!credential) {
-      return res.status(400).json({ error: "Missing Google credential" });
-    }
+    const validated = googleAuthSchema.parse(req.body);
+    const { token: credential, role } = validated;
 
     const ticket = await googleClient.verifyIdToken({
       idToken: credential,
@@ -221,6 +224,16 @@ exports.googleLogin = async (req, res) => {
       },
     });
   } catch (err) {
+    // Handle Zod validation errors
+    if (err.name === "ZodError") {
+      const errors = err.errors.map((e) => ({
+        field: e.path.join("."),
+        message: e.message,
+      }));
+      return res
+        .status(400)
+        .json({ error: "Validation failed", details: errors });
+    }
     console.error("Google login error:", err);
     res.status(500).json({ error: "An error occurred during Google login" });
   }
@@ -228,10 +241,8 @@ exports.googleLogin = async (req, res) => {
 
 exports.verifyOtp = async (req, res) => {
   try {
-    const { email, otp } = req.body;
-    if (!email || !otp) {
-      return res.status(400).json({ error: "Email and OTP are required" });
-    }
+    const validated = verifyOtpSchema.parse(req.body);
+    const { email, otp } = validated;
 
     const user = await prisma.user.findUnique({
       where: { email: email.toLowerCase() },
@@ -285,6 +296,16 @@ exports.verifyOtp = async (req, res) => {
       },
     });
   } catch (err) {
+    // Handle Zod validation errors
+    if (err.name === "ZodError") {
+      const errors = err.errors.map((e) => ({
+        field: e.path.join("."),
+        message: e.message,
+      }));
+      return res
+        .status(400)
+        .json({ error: "Validation failed", details: errors });
+    }
     console.error("OTP verification error:", err);
     res.status(500).json({ error: "An error occurred during verification" });
   }
