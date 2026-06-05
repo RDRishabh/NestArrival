@@ -2,16 +2,16 @@ require("dotenv/config");
 const express = require("express");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
-const rateLimit = require("express-rate-limit");
 const path = require("path");
 const fs = require("fs");
 const helmet = require("helmet");
 
-const apiLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 200,
-  message: "Too many requests from this IP, please try again later.",
-});
+const {
+  generalLimiter,
+  authLimiter,
+  publicLimiter,
+  adminLimiter,
+} = require("./middleware/rateLimiter.middleware");
 
 const authRoutes = require("./routes/auth.routes");
 const listingRoutes = require("./routes/listing.routes");
@@ -40,6 +40,9 @@ const authLimiter = rateLimit({
 });
 
 const app = express();
+if (process.env.NODE_ENV === "production") {
+  app.set("trust proxy", 1);
+}
 app.disable("x-powered-by");
 
 app.use(helmet());
@@ -52,8 +55,11 @@ app.use(
 app.use(express.json({ limit: "10kb" }));
 app.use(cookieParser());
 app.use("/uploads", express.static(uploadDir, { dotfiles: "deny" }));
-app.use("/api", apiLimiter);
+app.use("/api", generalLimiter);
 app.use("/api/auth", authLimiter);
+app.use("/api/listings", publicLimiter);
+app.use("/api/cms", publicLimiter);
+app.use("/api/admin", adminLimiter);
 
 app.use("/api/auth", authRoutes);
 app.use("/api/listings", listingRoutes);
