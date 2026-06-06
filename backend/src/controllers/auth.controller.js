@@ -12,6 +12,11 @@ const {
   googleAuthSchema,
   resendOtpSchema,
 } = require("../schemas/validation");
+const {
+  isZodError,
+  sendValidationError,
+  sendServerError,
+} = require("../utils/http");
 
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 const JWT_COOKIE_NAME = "nestarrival_session";
@@ -44,7 +49,14 @@ function setCookie(res, token) {
 
 exports.signup = async (req, res) => {
   try {
-    const { email, password, fullName, role } = signupSchema.parse(req.body);
+    const result = signupSchema.safeParse(req.body);
+
+    if (!result.success) {
+      return sendValidationError(res, result.error);
+    }
+
+    const { email, password, fullName, role } = result.data;
+    const normalizedEmail = email.toLowerCase();
 
     const passwordHash = await bcrypt.hash(password, 10);
 
@@ -52,7 +64,7 @@ exports.signup = async (req, res) => {
 
     await prisma.user.create({
       data: {
-        email: email.toLowerCase(),
+        email: normalizedEmail,
         passwordHash,
         fullName,
         role: normalizeRole(role),
@@ -67,26 +79,28 @@ exports.signup = async (req, res) => {
       },
     });
 
-    await sendVerificationOtp(email, otp);
+    try {
+      await sendVerificationOtp(normalizedEmail, otp);
+    } catch (mailError) {
+      console.error("Signup OTP email failed:", mailError);
+      return res.status(503).json({
+        error:
+          "Account created, but verification email could not be sent. Please request a new OTP.",
+      });
+    }
 
     res.json({
       message: "Signup successful. OTP sent to email.",
-      email,
+      email: normalizedEmail,
     });
   } catch (err) {
-    if (err.name === "ZodError") {
-      const errors = err.errors.map((e) => ({
-        field: e.path.join("."),
-        message: e.message,
-      }));
-      return res
-        .status(400)
-        .json({ error: "Validation failed", details: errors });
+    if (isZodError(err)) {
+      return sendValidationError(res, err);
     }
     if (err.code === "P2002") {
       return res.status(409).json({ error: "Email already registered" });
     }
-    res.status(500).json({ error: "Signup failed" });
+    return sendServerError(res, "Signup error: " + err.message, "Signup failed");
   }
 };
 
@@ -98,6 +112,9 @@ exports.login = async (req, res) => {
       where: { email: email.toLowerCase() },
     });
     if (!user) {
+      return res.status(400).json({ error: "Invalid credentials" });
+    }
+    if (!user.passwordHash) {
       return res.status(400).json({ error: "Invalid credentials" });
     }
     const match = await bcrypt.compare(password, user.passwordHash);
@@ -140,19 +157,33 @@ exports.login = async (req, res) => {
         otpLastSentAt: new Date(),
       },
     });
-    await sendVerificationOtp(user.email, otp);
+    try {
+      await sendVerificationOtp(user.email, otp);
+    } catch (mailError) {
+      console.error("Login OTP email failed:", mailError);
+      return res.status(503).json({
+        error: "Verification email could not be sent. Please try again later.",
+      });
+    }
     return res.json({
       message: "OTP sent for verification",
       isVerified: false,
       email: user.email,
     });
   } catch (err) {
+    if (isZodError(err)) {
+      return sendValidationError(res, err);
+    }
     console.error("Login error:", err);
     return res.status(400).json({ error: "Invalid credentials" });
   }
 };
 exports.googleLogin = async (req, res) => {
   try {
+    if (!process.env.GOOGLE_CLIENT_ID) {
+      return res.status(503).json({ error: "Google login is not configured" });
+    }
+
     const validated = googleAuthSchema.parse(req.body);
     const { token: credential, role } = validated;
 
@@ -216,15 +247,8 @@ exports.googleLogin = async (req, res) => {
       },
     });
   } catch (err) {
-    // Handle Zod validation errors
-    if (err.name === "ZodError") {
-      const errors = err.errors.map((e) => ({
-        field: e.path.join("."),
-        message: e.message,
-      }));
-      return res
-        .status(400)
-        .json({ error: "Validation failed", details: errors });
+    if (isZodError(err)) {
+      return sendValidationError(res, err);
     }
     console.error("Google login error:", err);
     res.status(500).json({ error: "An error occurred during Google login" });
@@ -292,7 +316,71 @@ exports.verifyOtp = async (req, res) => {
       message: "Account verified successfully",
     });
   } catch (err) {
-    res.status(400).json({ message: "Invalid OTP" });
+    if (isZodError(err)) {
+      return sendValidationError(res, err);
+    }
+    console.error("OTP verification error:", err);
+    res.status(400).json({ error: "Invalid OTP" });
+  }
+};
+
+exports.resendOtp = async (req, res) => {
+  try {
+    const { email } = resendOtpSchema.parse(req.body);
+    const normalizedEmail = email.toLowerCase();
+
+    const user = await prisma.user.findUnique({
+      where: { email: normalizedEmail },
+    });
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    if (user.isBanned) {
+      return res.status(403).json({ error: "Account banned" });
+    }
+    if (user.isVerified) {
+      return res.status(400).json({ error: "Account is already verified" });
+    }
+    if (
+      user.otpLastSentAt &&
+      Date.now() - new Date(user.otpLastSentAt).getTime() < 60_000
+    ) {
+      return res.status(429).json({
+        error: "Wait before requesting OTP again",
+      });
+    }
+
+    const { otp, otpHash, otpExpiry } = createOtp();
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        otp: otpHash,
+        otpExpiry,
+        otpAttempts: 0,
+        otpLastSentAt: new Date(),
+      },
+    });
+
+    try {
+      await sendVerificationOtp(normalizedEmail, otp);
+    } catch (mailError) {
+      console.error("Resend OTP email failed:", mailError);
+      return res.status(503).json({
+        error: "Verification email could not be sent. Please try again later.",
+      });
+    }
+
+    return res.json({ message: "OTP resent successfully", email: normalizedEmail });
+  } catch (err) {
+    if (isZodError(err)) {
+      return sendValidationError(res, err);
+    }
+    return sendServerError(
+      res,
+      "Resend OTP error: " + err.message,
+      "Unable to resend OTP",
+    );
   }
 };
 

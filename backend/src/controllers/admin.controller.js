@@ -1,4 +1,5 @@
 const { prisma } = require("../config/db");
+const { sendServerError } = require("../utils/http");
 
 exports.getAnalytics = async (req, res) => {
   try {
@@ -16,8 +17,7 @@ exports.getAnalytics = async (req, res) => {
 
     res.json({ totalTenants, totalOwners, totalListings, totalRevenue });
   } catch (err) {
-    console.error("Analytics error:", err);
-    res.status(500).json({ error: "Failed to fetch analytics" });
+    return sendServerError(res, err, "Failed to fetch analytics");
   }
 };
 
@@ -48,8 +48,7 @@ exports.getVerifications = async (req, res) => {
 
     res.json({ total, page, limit, verifications: list });
   } catch (err) {
-    console.error("Verification requests error:", err);
-    res.status(500).json({ error: "Failed to fetch verification requests" });
+    return sendServerError(res, err, "Failed to fetch verification requests");
   }
 };
 
@@ -58,6 +57,9 @@ exports.processVerification = async (req, res) => {
     const { userId, action, notes } = req.body;
     if (!userId || !action) {
       return res.status(400).json({ error: "User ID and action are required" });
+    }
+    if (!["APPROVE", "REJECT"].includes(action)) {
+      return res.status(400).json({ error: "Invalid verification action" });
     }
 
     const status = action === "APPROVE" ? "VERIFIED" : "REJECTED";
@@ -77,7 +79,11 @@ exports.processVerification = async (req, res) => {
     ]);
     res.json({ message: "Verification processed successfully", status });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    return sendServerError(
+      res,
+      "Verification processing error: " + err.message,
+      "Failed to process verification",
+    );
   }
 };
 
@@ -89,6 +95,9 @@ exports.moderateListing = async (req, res) => {
         .status(400)
         .json({ error: "Listing ID and action are required" });
     }
+    if (!["APPROVE", "REJECT"].includes(action)) {
+      return res.status(400).json({ error: "Invalid listing action" });
+    }
 
     const status = action === "APPROVE" ? "APPROVED" : "REJECTED";
 
@@ -99,7 +108,11 @@ exports.moderateListing = async (req, res) => {
 
     res.json({ message: "Listing moderated successfully", status });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    return sendServerError(
+      res,
+      "Listing moderation error: " + err.message,
+      "Failed to moderate listing",
+    );
   }
 };
 
@@ -128,7 +141,7 @@ exports.getRefundRequests = async (req, res) => {
       where: { tenantId: { in: userIds } },
       include: {
         messages: {
-          select: { senderId: true, chatRoomId: true },
+          select: { senderId: true, roomId: true },
         },
       },
     });
@@ -160,8 +173,7 @@ exports.getRefundRequests = async (req, res) => {
 
     res.json({ total, page, limit, refundRequests: enriched });
   } catch (err) {
-    console.error("Refund requests error:", err);
-    res.status(500).json({ error: "Failed to fetch refund requests" });
+    return sendServerError(res, err, "Failed to fetch refund requests");
   }
 };
 
@@ -173,10 +185,13 @@ exports.processRefundRequest = async (req, res) => {
         .status(400)
         .json({ error: "Refund request ID and action are required" });
     }
+    if (!["APPROVE", "REJECT"].includes(action)) {
+      return res.status(400).json({ error: "Invalid refund action" });
+    }
 
     const status = action === "APPROVE" ? "APPROVED" : "REJECTED";
 
-    const refund = await prisma.$transaction(async (tx) => {
+    await prisma.$transaction(async (tx) => {
       const updated = await tx.refundRequest.update({
         where: { id: refundRequestId },
         data: { status, adminNotes: notes || null },
@@ -193,8 +208,7 @@ exports.processRefundRequest = async (req, res) => {
     });
     res.json({ message: "Refund moderated successfully" });
   } catch (err) {
-    console.error("Refund processing error:", err);
-    res.status(500).json({ error: "Failed to process refund request" });
+    return sendServerError(res, err, "Failed to process refund request");
   }
 };
 
@@ -227,8 +241,7 @@ exports.getUsers = async (req, res) => {
 
     res.json({ total, page, limit, tenants, owners });
   } catch (err) {
-    console.error("Users fetch error:", err);
-    res.status(500).json({ error: "Failed to fetch users" });
+    return sendServerError(res, err, "Failed to fetch users");
   }
 };
 
@@ -237,6 +250,9 @@ exports.banUser = async (req, res) => {
     const { userId, action, reason } = req.body;
     if (!userId || !action) {
       return res.status(400).json({ error: "User ID and Action are required" });
+    }
+    if (!["BAN", "UNBAN"].includes(action)) {
+      return res.status(400).json({ error: "Invalid user action" });
     }
 
     const isBanned = action === "BAN";
@@ -255,6 +271,10 @@ exports.banUser = async (req, res) => {
       banReason,
     });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    return sendServerError(
+      res,
+      "User moderation error: " + err.message,
+      "Failed to update user status",
+    );
   }
 };

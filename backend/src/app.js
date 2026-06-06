@@ -5,6 +5,7 @@ const cookieParser = require("cookie-parser");
 const path = require("path");
 const fs = require("fs");
 const helmet = require("helmet");
+const multer = require("multer");
 
 const {
   generalLimiter,
@@ -62,5 +63,34 @@ app.use("/api/verification", verificationRoutes);
 app.use("/api/subscriptions", subscriptionRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/cms", cmsRoutes);
+
+app.use((req, res) => {
+  res.status(404).json({ error: "Route not found" });
+});
+
+app.use((err, req, res, next) => {
+  if (res.headersSent) {
+    return next(err);
+  }
+
+  if (err instanceof SyntaxError && err.status === 400 && "body" in err) {
+    return res.status(400).json({ error: "Invalid JSON payload" });
+  }
+
+  if (err instanceof multer.MulterError) {
+    const message =
+      err.code === "LIMIT_FILE_SIZE"
+        ? "Uploaded file must not exceed 2MB"
+        : "File upload failed";
+    return res.status(400).json({ error: message });
+  }
+
+  if (err.message === "Only JPG, PNG, and PDF files are allowed") {
+    return res.status(400).json({ error: err.message });
+  }
+
+  console.error("Unhandled request error:", err);
+  return res.status(500).json({ error: "Internal server error" });
+});
 
 module.exports = { app };

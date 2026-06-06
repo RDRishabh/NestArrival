@@ -1,4 +1,5 @@
 const { z } = require("zod");
+const { sendValidationError } = require("../utils/http");
 
 // Auth Schemas
 const signupSchema = z.object({
@@ -158,14 +159,7 @@ const validateSchema = (schema) => {
       next();
     } catch (error) {
       if (error instanceof z.ZodError) {
-        const errors = error.errors.map((err) => ({
-          field: err.path.join("."),
-          message: err.message,
-        }));
-        return res.status(400).json({
-          error: "Validation failed",
-          details: errors,
-        });
+        return sendValidationError(res, error);
       }
       return res.status(400).json({ error: "Invalid request data" });
     }

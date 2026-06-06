@@ -1,4 +1,5 @@
 const { prisma } = require("../config/db");
+const { sendServerError } = require("../utils/http");
 
 exports.uploadFile = async (req, res) => {
   if (!req.file) {
@@ -72,12 +73,7 @@ exports.submitVerification = async (req, res) => {
           currentStatus: currentStatus ? String(currentStatus) : null,
           visaStatus: visaStatus ? String(visaStatus) : null,
           visaType: visaType ? String(visaType) : null,
-          plannedMoveDate: plannedMoveDate
-            ? (() => {
-                const date = new Date(plannedMoveDate);
-                return isNaN(date.getTime()) ? null : date;
-              })()
-            : null,
+          plannedMoveDate: plannedMoveDate ? String(plannedMoveDate) : null,
           purposeOfRelocation: purposeOfRelocation
             ? String(purposeOfRelocation)
             : null,
@@ -108,7 +104,6 @@ exports.submitVerification = async (req, res) => {
 
     res.json({ message: "Verification request submitted successfully" });
   } catch (err) {
-    console.error("Verification submission error:", err);
-    res.status(500).json({ error: "Failed to submit verification request" });
+    return sendServerError(res, err, "Failed to submit verification request");
   }
 };

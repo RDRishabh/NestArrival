@@ -5,6 +5,7 @@ const {
   sendMessageSchema,
   initiateChatSchema,
 } = require("../schemas/validation");
+const { isZodError, sendValidationError } = require("../utils/http");
 
 exports.getRooms = async (req, res) => {
   try {
@@ -51,17 +52,11 @@ exports.getRooms = async (req, res) => {
 
     res.json({ total, page, limit, rooms });
   } catch (err) {
-    // Handle Zod validation errors
-    if (err.name === "ZodError") {
-      const errors = err.errors.map((e) => ({
-        field: e.path.join("."),
-        message: e.message,
-      }));
-      return res
-        .status(400)
-        .json({ error: "Validation failed", details: errors });
+    if (isZodError(err)) {
+      return sendValidationError(res, err);
     }
-    res.status(500).json({ error: err.message });
+    console.error("Chat rooms fetch error:", err);
+    res.status(500).json({ error: "Unable to retrieve chat rooms" });
   }
 };
 
@@ -96,17 +91,11 @@ exports.getMessages = async (req, res) => {
 
     res.json({ total, page, limit, messages });
   } catch (err) {
-    // Handle Zod validation errors
-    if (err.name === "ZodError") {
-      const errors = err.errors.map((e) => ({
-        field: e.path.join("."),
-        message: e.message,
-      }));
-      return res
-        .status(400)
-        .json({ error: "Validation failed", details: errors });
+    if (isZodError(err)) {
+      return sendValidationError(res, err);
     }
-    res.status(500).json({ error: err.message });
+    console.error("Chat messages fetch error:", err);
+    res.status(500).json({ error: "Unable to retrieve messages" });
   }
 };
 
@@ -137,17 +126,11 @@ exports.sendMessage = async (req, res) => {
 
     res.json(msg);
   } catch (err) {
-    // Handle Zod validation errors
-    if (err.name === "ZodError") {
-      const errors = err.errors.map((e) => ({
-        field: e.path.join("."),
-        message: e.message,
-      }));
-      return res
-        .status(400)
-        .json({ error: "Validation failed", details: errors });
+    if (isZodError(err)) {
+      return sendValidationError(res, err);
     }
-    res.status(500).json({ error: err.message });
+    console.error("Send message error:", err);
+    res.status(500).json({ error: "Unable to send message" });
   }
 };
 
@@ -254,16 +237,10 @@ exports.initiateChat = async (req, res) => {
       throw err;
     }
   } catch (err) {
-    // Handle Zod validation errors
-    if (err.name === "ZodError") {
-      const errors = err.errors.map((e) => ({
-        field: e.path.join("."),
-        message: e.message,
-      }));
-      return res
-        .status(400)
-        .json({ error: "Validation failed", details: errors });
+    if (isZodError(err)) {
+      return sendValidationError(res, err);
     }
-    res.status(500).json({ error: err.message });
+    console.error("Initiate chat error:", err);
+    res.status(500).json({ error: "Unable to initiate chat" });
   }
 };

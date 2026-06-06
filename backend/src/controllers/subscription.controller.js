@@ -8,6 +8,7 @@ const {
   subscriptionQuerySchema,
   createRefundRequestSchema,
 } = require("../schemas/validation");
+const { isZodError, sendValidationError } = require("../utils/http");
 
 exports.createSubscription = async (req, res) => {
   try {
@@ -120,17 +121,10 @@ exports.createSubscription = async (req, res) => {
 
     res.json({ message: `Successfully purchased ${plan.name}!` });
   } catch (err) {
-    // Handle Zod validation errors
-    if (err.name === "ZodError") {
-      const errors = err.errors.map((e) => ({
-        field: e.path.join("."),
-        message: e.message,
-      }));
-      return res
-        .status(400)
-        .json({ error: "Validation failed", details: errors });
+    if (isZodError(err)) {
+      return sendValidationError(res, err);
     }
-    if (err.message.includes("PAYMENT_NOT_IMPLEMENTED")) {
+    if (err.message?.includes("PAYMENT_NOT_IMPLEMENTED")) {
       return res.status(501).json({
         error:
           "Payment processing is not yet configured. Please contact support.",
@@ -176,15 +170,8 @@ exports.getSubscriptions = async (req, res) => {
 
     res.json({ subscriptions, page, limit, total });
   } catch (err) {
-    // Handle Zod validation errors
-    if (err.name === "ZodError") {
-      const errors = err.errors.map((e) => ({
-        field: e.path.join("."),
-        message: e.message,
-      }));
-      return res
-        .status(400)
-        .json({ error: "Validation failed", details: errors });
+    if (isZodError(err)) {
+      return sendValidationError(res, err);
     }
     console.error("Subscriptions fetch error:", err);
     res.status(500).json({
@@ -261,15 +248,8 @@ exports.createRefundRequest = async (req, res) => {
 
     res.json({ message: "Refund application submitted to auditing queue." });
   } catch (err) {
-    // Handle Zod validation errors
-    if (err.name === "ZodError") {
-      const errors = err.errors.map((e) => ({
-        field: e.path.join("."),
-        message: e.message,
-      }));
-      return res
-        .status(400)
-        .json({ error: "Validation failed", details: errors });
+    if (isZodError(err)) {
+      return sendValidationError(res, err);
     }
     console.error("Refund request error:", err);
     res.status(500).json({

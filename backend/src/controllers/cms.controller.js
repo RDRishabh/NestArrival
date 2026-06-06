@@ -1,11 +1,12 @@
 const { prisma } = require("../config/db");
+const { sendServerError } = require("../utils/http");
 
 exports.getPages = async (req, res) => {
   try {
     const list = await prisma.cmsPage.findMany();
     res.json(list);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    return sendServerError(res, err, "Failed to fetch CMS pages");
   }
 };
 
@@ -19,7 +20,7 @@ exports.getPage = async (req, res) => {
 
     res.json(page);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    return sendServerError(res, err, "Failed to fetch CMS page");
   }
 };
 
@@ -38,6 +39,6 @@ exports.updatePage = async (req, res) => {
 
     res.json(updated);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    return sendServerError(res, err, "Failed to update CMS page");
   }
 };

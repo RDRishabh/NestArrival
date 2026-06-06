@@ -1,5 +1,6 @@
 const { prisma } = require("../config/db");
 const jwt = require("jsonwebtoken");
+const { sendServerError } = require("../utils/http");
 const JWT_COOKIE_NAME = "nestarrival_session";
 
 exports.getListings = async (req, res) => {
@@ -97,7 +98,11 @@ exports.getListings = async (req, res) => {
 
     res.json({ total, page: pageNumber, limit: pageSize, listings });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    return sendServerError(
+      res,
+      "Listings fetch error: " + err.message,
+      "Failed to fetch listings",
+    );
   }
 };
 
@@ -138,7 +143,11 @@ exports.getListingById = async (req, res) => {
 
     res.json(item);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    return sendServerError(
+      res,
+      "Listing fetch error: " + err.message,
+      "Failed to fetch listing",
+    );
   }
 };
 
@@ -202,12 +211,17 @@ exports.createListing = async (req, res) => {
         bedrooms: bedroomsValue,
         bathrooms: bathroomsValue,
         availabilityDate: availDate,
+        photos: [],
         status: "PENDING_REVIEW",
       },
     });
     res.json(listing);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    return sendServerError(
+      res,
+      "Listing create error: " + err.message,
+      "Failed to create listing",
+    );
   }
 };
 
@@ -297,7 +311,11 @@ exports.updateListing = async (req, res) => {
 
     res.json(updated);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    return sendServerError(
+      res,
+      "Listing update error: " + err.message,
+      "Failed to update listing",
+    );
   }
 };
 
@@ -317,7 +335,11 @@ exports.archiveListing = async (req, res) => {
 
     res.json({ message: "Listing archived successfully." });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    return sendServerError(
+      res,
+      "Listing archive error: " + err.message,
+      "Failed to archive listing",
+    );
   }
 };
 
@@ -336,7 +358,11 @@ exports.getSavedListings = async (req, res) => {
     });
     res.json(list.filter((item) => item.listing).map((item) => item.listing));
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    return sendServerError(
+      res,
+      "Saved listings fetch error: " + err.message,
+      "Failed to fetch saved listings",
+    );
   }
 };
 
@@ -373,6 +399,10 @@ exports.toggleSaveListing = async (req, res) => {
     });
     res.json({ message: "Bookmark saved", saved: true });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    return sendServerError(
+      res,
+      "Save listing toggle error: " + err.message,
+      "Failed to update saved listing",
+    );
   }
 };
