@@ -78,10 +78,16 @@ app.use((err, req, res, next) => {
   }
 
   if (err instanceof multer.MulterError) {
-    const message =
-      err.code === "LIMIT_FILE_SIZE"
-        ? "Uploaded file must not exceed 2MB"
-        : "File upload failed";
+    const multerMessages = {
+      LIMIT_FILE_SIZE: "Uploaded file must not exceed 2MB",
+      LIMIT_UNEXPECTED_FILE: "Upload field must be named file",
+      LIMIT_PART_COUNT: "Too many upload parts",
+      LIMIT_FILE_COUNT: "Only one file can be uploaded at a time",
+      LIMIT_FIELD_KEY: "Upload field name is too long",
+      LIMIT_FIELD_VALUE: "Upload field value is too long",
+      LIMIT_FIELD_COUNT: "Too many upload fields",
+    };
+    const message = multerMessages[err.code] || "File upload failed";
     return res.status(400).json({ error: message });
   }
 

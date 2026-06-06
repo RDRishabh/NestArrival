@@ -9,7 +9,7 @@ if (!fs.existsSync(uploadDir)) {
 }
 
 const allowedMimeTypes = {
-  "image/jpeg": ".jpg",
+  "image/jpeg": [".jpg", ".jpeg"],
   "image/png": ".png",
   "application/pdf": ".pdf",
 };
@@ -37,12 +37,18 @@ const upload = multer({
       return cb(null, false);
     }
 
-    const mimeAllowed = Object.keys(allowedMimeTypes);
     const extension = path.extname(file.originalname).toLowerCase();
-    const extensionAllowed =
-      Object.values(allowedMimeTypes).includes(extension);
+    const allowedExtensions = allowedMimeTypes[file.mimetype];
 
-    if (!mimeAllowed.includes(file.mimetype) || !extensionAllowed) {
+    if (!allowedExtensions) {
+      return cb(new Error("Only JPG, PNG, and PDF files are allowed"));
+    }
+
+    const normalizedExtensions = Array.isArray(allowedExtensions)
+      ? allowedExtensions
+      : [allowedExtensions];
+
+    if (!normalizedExtensions.includes(extension)) {
       return cb(new Error("Only JPG, PNG, and PDF files are allowed"));
     }
 

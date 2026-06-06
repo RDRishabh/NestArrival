@@ -153,6 +153,10 @@ exports.sendVerificationOtp = async (email, otp) => {
     html: emailContent.html,
   });
 
-  console.log(`[NestArrival SMTP] Verification email sent to ${email}`);
+  // Mask email for privacy: show first 2 chars and domain only
+  const [localPart, domain] = email.split("@");
+  const masked = `${localPart.slice(0, 2)}***@${domain}`;
+  console.log(`[NestArrival SMTP] Verification email sent to ${masked}`);
   return true;
 };
+
