@@ -4,7 +4,7 @@ const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
 const { OAuth2Client } = require("google-auth-library");
 const { sendVerificationOtp } = require("../services/mail.service");
-const { createOtp } = require("../utils/otp");
+const { createOtp, hashOtp } = require("../utils/otp");
 const {
   signupSchema,
   loginSchema,
@@ -74,9 +74,22 @@ exports.signup = async (req, res) => {
       email,
     });
   } catch (err) {
+    if (err.name === "ZodError") {
+      const errors = err.errors.map((e) => ({
+        field: e.path.join("."),
+        message: e.message,
+      }));
+      return res
+        .status(400)
+        .json({ error: "Validation failed", details: errors });
+    }
+    if (err.code === "P2002") {
+      return res.status(409).json({ error: "Email already registered" });
+    }
     res.status(500).json({ error: "Signup failed" });
   }
 };
+
 exports.login = async (req, res) => {
   try {
     const { email, password } = loginSchema.parse(req.body);
@@ -84,26 +97,40 @@ exports.login = async (req, res) => {
     const user = await prisma.user.findUnique({
       where: { email: email.toLowerCase() },
     });
-
-    if (!user) return res.status(400).json({ error: "Invalid credentials" });
-
+    if (!user) {
+      return res.status(400).json({ error: "Invalid credentials" });
+    }
     const match = await bcrypt.compare(password, user.passwordHash);
-    if (!match) return res.status(400).json({ error: "Invalid credentials" });
+    if (!match) {
+      return res.status(400).json({ error: "Invalid credentials" });
+    }
+    if (user.isBanned) {
+      return res.status(403).json({ error: "Account banned" });
+    }
+    if (user.isVerified) {
+      const token = createToken(user);
+      setCookie(res, token);
 
-    if (user.isBanned) return res.status(403).json({ error: "Account banned" });
-
-    // OTP resend cooldown
+      return res.json({
+        message: "Login successful",
+        user: {
+          id: user.id,
+          email: user.email,
+          fullName: user.fullName,
+          role: user.role,
+          isVerified: true,
+        },
+      });
+    }
     if (
       user.otpLastSentAt &&
       Date.now() - new Date(user.otpLastSentAt).getTime() < 60_000
     ) {
-      return res
-        .status(429)
-        .json({ error: "Wait before requesting OTP again" });
+      return res.status(429).json({
+        error: "Wait before requesting OTP again",
+      });
     }
-
     const { otp, otpHash, otpExpiry } = createOtp();
-
     await prisma.user.update({
       where: { id: user.id },
       data: {
@@ -113,24 +140,15 @@ exports.login = async (req, res) => {
         otpLastSentAt: new Date(),
       },
     });
-
     await sendVerificationOtp(user.email, otp);
-
-    if (!user.isVerified) {
-      return res.json({
-        message: "OTP sent for verification",
-        isVerified: false,
-      });
-    }
-
-    const token = createToken(user);
-    setCookie(res, token);
-
-    res.json({
-      message: "Login successful",
+    return res.json({
+      message: "OTP sent for verification",
+      isVerified: false,
+      email: user.email,
     });
   } catch (err) {
-    res.status(500).json({ error: "Login failed" });
+    console.error("Login error:", err);
+    return res.status(400).json({ error: "Invalid credentials" });
   }
 };
 exports.googleLogin = async (req, res) => {
@@ -274,7 +292,7 @@ exports.verifyOtp = async (req, res) => {
       message: "Account verified successfully",
     });
   } catch (err) {
-    res.status(500).json({ error: "Verification failed" });
+    res.status(400).json({ message: "Invalid OTP" });
   }
 };
 
