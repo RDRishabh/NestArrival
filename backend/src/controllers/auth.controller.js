@@ -4,6 +4,7 @@ const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
 const { OAuth2Client } = require("google-auth-library");
 const { sendVerificationOtp } = require("../services/mail.service");
+const { createOtp } = require("../utils/otp");
 const {
   signupSchema,
   loginSchema,
@@ -31,7 +32,6 @@ function isValidRole(role) {
 function normalizeRole(role) {
   return isValidRole(role) ? String(role).toUpperCase() : "TENANT";
 }
-
 function setCookie(res, token) {
   res.cookie(JWT_COOKIE_NAME, token, {
     httpOnly: true,
@@ -44,87 +44,82 @@ function setCookie(res, token) {
 
 exports.signup = async (req, res) => {
   try {
-    const validated = signupSchema.parse(req.body);
-    const { email, password, fullName, role } = validated;
+    const { email, password, fullName, role } = signupSchema.parse(req.body);
 
-    const salt = await bcrypt.genSalt(10);
-    const passwordHash = await bcrypt.hash(password, salt);
-    const otp = crypto.randomInt(100000, 1000000).toString();
-    const otpExpiry = new Date(Date.now() + 15 * 60 * 1000);
+    const passwordHash = await bcrypt.hash(password, 10);
 
-    const user = await prisma.user.create({
+    const { otp, otpHash, otpExpiry } = createOtp();
+
+    await prisma.user.create({
       data: {
         email: email.toLowerCase(),
         passwordHash,
         fullName,
         role: normalizeRole(role),
-        otp,
+
+        otp: otpHash,
         otpExpiry,
+        otpAttempts: 0,
+        otpLastSentAt: new Date(),
+
         isVerified: false,
         verificationStatus: "UNVERIFIED",
       },
     });
 
-    await sendVerificationOtp(user.email, otp);
+    await sendVerificationOtp(email, otp);
 
     res.json({
-      message: "Signup successful. Verification OTP sent to email.",
-      email: user.email,
+      message: "Signup successful. OTP sent to email.",
+      email,
     });
   } catch (err) {
-    // Handle Zod validation errors
-    if (err.name === "ZodError") {
-      const errors = err.errors.map((e) => ({
-        field: e.path.join("."),
-        message: e.message,
-      }));
-      return res
-        .status(400)
-        .json({ error: "Validation failed", details: errors });
-    }
-    console.error("Signup error:", err);
-    res.status(500).json({ error: "An error occurred during signup" });
+    res.status(500).json({ error: "Signup failed" });
   }
 };
-
 exports.login = async (req, res) => {
   try {
-    const validated = loginSchema.parse(req.body);
-    const { email, password } = validated;
+    const { email, password } = loginSchema.parse(req.body);
 
     const user = await prisma.user.findUnique({
       where: { email: email.toLowerCase() },
-      include: { subscriptions: true },
     });
 
-    if (!user) {
-      return res.status(400).json({ error: "Invalid email or password" });
-    }
-
-    if (user.isBanned) {
-      return res.status(403).json({ error: "Account is banned" });
-    }
+    if (!user) return res.status(400).json({ error: "Invalid credentials" });
 
     const match = await bcrypt.compare(password, user.passwordHash);
-    if (!match) {
-      return res.status(400).json({ error: "Invalid email or password" });
+    if (!match) return res.status(400).json({ error: "Invalid credentials" });
+
+    if (user.isBanned) return res.status(403).json({ error: "Account banned" });
+
+    // OTP resend cooldown
+    if (
+      user.otpLastSentAt &&
+      Date.now() - new Date(user.otpLastSentAt).getTime() < 60_000
+    ) {
+      return res
+        .status(429)
+        .json({ error: "Wait before requesting OTP again" });
     }
 
+    const { otp, otpHash, otpExpiry } = createOtp();
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        otp: otpHash,
+        otpExpiry,
+        otpAttempts: 0,
+        otpLastSentAt: new Date(),
+      },
+    });
+
+    await sendVerificationOtp(user.email, otp);
+
     if (!user.isVerified) {
-      const otp = crypto.randomInt(100000, 1000000).toString();
-      const otpExpiry = new Date(Date.now() + 15 * 60 * 1000);
-
-      await prisma.user.update({
-        where: { id: user.id },
-        data: { otp, otpExpiry },
-      });
-
-      await sendVerificationOtp(user.email, otp);
-
       return res.json({
-        message: "Email verification pending.",
+        message: "OTP sent for verification",
         isVerified: false,
-        email: user.email,
       });
     }
 
@@ -132,33 +127,12 @@ exports.login = async (req, res) => {
     setCookie(res, token);
 
     res.json({
-      message: "Login successful.",
-      isVerified: true,
-      user: {
-        id: user.id,
-        email: user.email,
-        fullName: user.fullName,
-        role: user.role,
-        isVerified: user.isVerified,
-        verificationStatus: user.verificationStatus,
-      },
+      message: "Login successful",
     });
   } catch (err) {
-    // Handle Zod validation errors
-    if (err.name === "ZodError") {
-      const errors = err.errors.map((e) => ({
-        field: e.path.join("."),
-        message: e.message,
-      }));
-      return res
-        .status(400)
-        .json({ error: "Validation failed", details: errors });
-    }
-    console.error("Login error:", err);
-    res.status(500).json({ error: "An error occurred during login" });
+    res.status(500).json({ error: "Login failed" });
   }
 };
-
 exports.googleLogin = async (req, res) => {
   try {
     const validated = googleAuthSchema.parse(req.body);
@@ -241,34 +215,45 @@ exports.googleLogin = async (req, res) => {
 
 exports.verifyOtp = async (req, res) => {
   try {
-    const validated = verifyOtpSchema.parse(req.body);
-    const { email, otp } = validated;
+    const { email, otp } = verifyOtpSchema.parse(req.body);
 
     const user = await prisma.user.findUnique({
       where: { email: email.toLowerCase() },
     });
-    if (!user) {
-      return res.status(400).json({ error: "User not found" });
+
+    if (!user) return res.status(400).json({ error: "User not found" });
+
+    if (user.isBanned) return res.status(403).json({ error: "Account banned" });
+
+    if (!user.otp || !user.otpExpiry)
+      return res.status(400).json({ error: "No OTP found" });
+
+    if (new Date() > user.otpExpiry)
+      return res.status(400).json({ error: "OTP expired" });
+
+    if (user.otpAttempts >= 5)
+      return res.status(429).json({ error: "Too many attempts" });
+
+    const hashedInput = hashOtp(otp);
+
+    const stored = Buffer.from(user.otp);
+    const input = Buffer.from(hashedInput);
+
+    if (stored.length !== input.length) {
+      return res.status(400).json({ error: "Invalid OTP" });
     }
 
-    if (user.isBanned) {
-      return res.status(403).json({ error: "Account is banned" });
-    }
+    const isValid = crypto.timingSafeEqual(stored, input);
 
-    let otpMatch = false;
-    if (user.otp && otp) {
-      try {
-        otpMatch = crypto.timingSafeEqual(
-          Buffer.from(user.otp),
-          Buffer.from(otp),
-        );
-      } catch (err) {
-        otpMatch = false;
-      }
-    }
+    if (!isValid) {
+      await prisma.user.update({
+        where: { id: user.id },
+        data: {
+          otpAttempts: user.otpAttempts + 1,
+        },
+      });
 
-    if (!otpMatch || new Date() > new Date(user.otpExpiry)) {
-      return res.status(400).json({ error: "Invalid or expired OTP code" });
+      return res.status(400).json({ error: "Invalid OTP" });
     }
 
     await prisma.user.update({
@@ -277,6 +262,7 @@ exports.verifyOtp = async (req, res) => {
         isVerified: true,
         otp: null,
         otpExpiry: null,
+        otpAttempts: 0,
         verificationStatus: "VERIFIED",
       },
     });
@@ -285,29 +271,10 @@ exports.verifyOtp = async (req, res) => {
     setCookie(res, token);
 
     res.json({
-      message: "Account verified successfully.",
-      user: {
-        id: user.id,
-        email: user.email,
-        fullName: user.fullName,
-        role: user.role,
-        isVerified: true,
-        verificationStatus: "VERIFIED",
-      },
+      message: "Account verified successfully",
     });
   } catch (err) {
-    // Handle Zod validation errors
-    if (err.name === "ZodError") {
-      const errors = err.errors.map((e) => ({
-        field: e.path.join("."),
-        message: e.message,
-      }));
-      return res
-        .status(400)
-        .json({ error: "Validation failed", details: errors });
-    }
-    console.error("OTP verification error:", err);
-    res.status(500).json({ error: "An error occurred during verification" });
+    res.status(500).json({ error: "Verification failed" });
   }
 };
 
