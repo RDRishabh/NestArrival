@@ -1,3 +1,14 @@
+/*
+ * Listings controller
+ *
+ * Responsibilities:
+ * - Search/list listings with filtering & pagination
+ * - Get listing by id (with access checks for unpublished listings)
+ * - Create/update listings (OWNER role + verified check)
+ * - Archive listing
+ * - Saved listings (bookmark toggle)
+ */
+
 const { prisma } = require("../config/db");
 const jwt = require("jsonwebtoken");
 const { sendServerError } = require("../utils/http");

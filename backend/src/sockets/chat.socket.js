@@ -1,6 +1,16 @@
+/*
+ * Socket.IO chat realtime layer
+ *
+ * Responsibilities:
+ * - Authenticate socket connections using the same cookie-based JWT
+ * - Authorize room membership (tenant <-> owner) before joining/sending
+ * - Persist chat messages (Prisma) and broadcast them to the room
+ */
+
 const { prisma } = require("../config/db");
 const jwt = require("jsonwebtoken");
 
+// Minimal cookie parser for Socket.IO handshake headers.
 function parseCookies(cookieHeader) {
   return (cookieHeader || "")
     .split(";")

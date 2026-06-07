@@ -1,3 +1,11 @@
+/*
+ * Verification controller
+ *
+ * Handles:
+ * - uploading verification documents
+ * - submitting verification details + documents metadata
+ */
+
 const { prisma } = require("../config/db");
 const { sendServerError } = require("../utils/http");
 

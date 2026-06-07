@@ -1,3 +1,18 @@
+/*
+ * Request validation (Zod schemas)
+ *
+ * Centralizes input validation for REST endpoints:
+ * - Auth (signup/login/OTP)
+ * - Listings (query + create/update)
+ * - Chat (rooms/messages/send/initiate)
+ * - Subscriptions (create + pagination + refunds)
+ * - Verification (document uploads)
+ * - CMS pages
+ *
+ * NOTE: Some routes use direct schema.parse(...). Others use the
+ * validateSchema middleware wrapper defined at the bottom.
+ */
+
 const { z } = require("zod");
 const { sendValidationError } = require("../utils/http");
 

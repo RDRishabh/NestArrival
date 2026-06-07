@@ -1,3 +1,12 @@
+/*
+ * CMS controller
+ *
+ * Provides CRUD-like handlers for CMS pages:
+ * - fetch all pages
+ * - fetch single page by id
+ * - update page content/title
+ */
+
 const { prisma } = require("../config/db");
 const { sendServerError } = require("../utils/http");
 

@@ -1,3 +1,13 @@
+/*
+ * Auth controller
+ *
+ * Implements:
+ * - Email/password signup + OTP verification
+ * - Login (password) + OTP flow for unverified accounts
+ * - Google login (OAuth2)
+ * - Logout + current user session (/me)
+ */
+
 const { prisma } = require("../config/db");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
@@ -101,7 +111,11 @@ exports.signup = async (req, res) => {
     if (err.code === "P2002") {
       return res.status(409).json({ error: "Email already registered" });
     }
-    return sendServerError(res, "Signup error: " + err.message, "Signup failed");
+    return sendServerError(
+      res,
+      "Signup error: " + err.message,
+      "Signup failed",
+    );
   }
 };
 

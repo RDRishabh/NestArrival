@@ -1,3 +1,13 @@
+/*
+ * Admin controller
+ *
+ * Handles admin-only operations:
+ * - Analytics aggregation
+ * - Moderating verifications + listings
+ * - Refund request management
+ * - Admin user management (ban/unban)
+ */
+
 const { prisma } = require("../config/db");
 const { sendServerError } = require("../utils/http");
 

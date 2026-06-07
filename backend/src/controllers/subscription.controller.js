@@ -1,8 +1,18 @@
+/*
+ * Subscription controller
+ *
+ * Handles subscription lifecycle:
+ * - create/purchase subscription plans
+ * - list user's subscriptions
+ * - create refund request
+ */
+
 const { prisma } = require("../config/db");
 const {
   SUBSCRIPTION_PLANS,
   URGENT_MATCH_ADDON,
 } = require("../utils/constants");
+
 const {
   createSubscriptionSchema,
   subscriptionQuerySchema,
