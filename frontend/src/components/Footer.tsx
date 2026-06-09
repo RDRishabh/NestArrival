@@ -12,7 +12,7 @@ export default function Footer() {
     { name: "Explore Locations", href: "/#explore" },
     { name: "Verified Listings", href: "/#explore" },
     { name: "Join Early Access", href: "/signup" },
-    { name: "Contact", href: "/contact" },
+    { name: "Contact Us", href: "/contact" },
   ];
 
   const relocationLinks = [

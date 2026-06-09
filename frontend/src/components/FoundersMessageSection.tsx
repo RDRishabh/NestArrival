@@ -52,7 +52,9 @@ export default function FoundersMessageSection() {
           <div className="mt-12 flex flex-col sm:flex-row items-start sm:items-center justify-between border-t border-[#eae1d3] pt-8 gap-6">
             <div className="flex items-center gap-4">
               <div className="h-16 w-16 rounded-full bg-[#eae1d3] overflow-hidden border-2 border-white shadow-md flex items-center justify-center relative">
-                <img src="/images/royal_singh.png" alt="Royal Singh" className="absolute inset-0 h-full w-full object-cover z-10" onError={(e) => e.currentTarget.style.display = 'none'} />
+                {/* <img src="" alt="Royal Singh" className="absolute inset-0 h-full w-full object-cover z-10" onError={(e) => e.currentTarget.style.display = 'none'} /> */}
+                <div className="founder-avatar">RS</div>
+
                 <span className="text-[#cfa052] font-bold text-xl relative z-0">RS</span>
               </div>
               <div>
