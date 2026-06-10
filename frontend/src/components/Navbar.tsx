@@ -3,7 +3,9 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ShieldCheck, LogOut, Menu, X } from "lucide-react";
+import { LogOut, Menu, X } from "lucide-react";
+import Logo from "./Logo";
+import { authApi } from "@/apis/Authentication/auth";
 
 export default function Navbar() {
   const [user, setUser] = useState<any>(null);
@@ -12,21 +14,22 @@ export default function Navbar() {
   const router = useRouter();
 
   useEffect(() => {
-    fetch("/api/auth/me")
-      .then((res) => (res.ok ? res.json() : null))
+    authApi.me()
+      .then((res) => res.data)
       .then((data) => {
         if (data && data.authenticated) {
           setUser(data.user);
         }
       })
+      .catch(() => {
+        setUser(null);
+      })
       .finally(() => setLoading(false));
   }, []);
 
   const handleLogout = async () => {
-    const res = await fetch("/api/auth/logout", {
-      method: "POST",
-    });
-    if (res.ok) {
+    const res = await authApi.logout();
+    if (res.status >= 200 && res.status < 300) {
       setUser(null);
       router.push("/");
       router.refresh();
@@ -45,7 +48,7 @@ export default function Navbar() {
       <div className="mx-auto flex max-w-7xl h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
         {/* Logo */}
         <Link href="/" className="flex items-center space-x-2 text-[#2c2724] group">
-          <ShieldCheck className="h-6 w-6 text-[#2c2724] transition-transform duration-300 group-hover:scale-110" />
+          <Logo className="h-8 w-8 text-[#2c2724] transition-transform duration-300 group-hover:scale-110" />
           <span className="text-xl font-bold tracking-tight">
             Nest<span className="text-[#2c2724] transition-all duration-300">Arrival</span>
           </span>
@@ -55,7 +58,7 @@ export default function Navbar() {
         <nav className="hidden md:flex items-center space-x-8 text-xs font-semibold text-[#8a7d6a]">
           <Link href="/about" className="hover:text-[#cfa052] transition-colors">About Us</Link>
           <Link href="/pricing" className="hover:text-[#cfa052] transition-colors">Pricing</Link>
-          <Link href="/contact" className="hover:text-[#cfa052] transition-colors">Help Center</Link>
+          <Link href="/contact" className="hover:text-[#cfa052] transition-colors">Contact US</Link>
           
           {loading ? (
             <div className="h-8 w-20 animate-pulse rounded bg-[#eae1d3]/60" />
@@ -124,7 +127,7 @@ export default function Navbar() {
             onClick={() => setMobileMenuOpen(false)}
             className="block text-[#5c544d] hover:text-[#cfa052] py-1 transition-colors"
           >
-            Help Center
+            Contact US
           </Link>
           
           <hr className="border-[#f4efe6]" />

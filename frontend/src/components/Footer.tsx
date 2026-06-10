@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { ShieldCheck, ArrowRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
+import Logo from "./Logo";
 
 export default function Footer() {
   const platformLinks = [
@@ -11,7 +12,7 @@ export default function Footer() {
     { name: "Explore Locations", href: "/#explore" },
     { name: "Verified Listings", href: "/#explore" },
     { name: "Join Early Access", href: "/signup" },
-    { name: "Contact", href: "/contact" },
+    { name: "Contact Us", href: "/contact" },
   ];
 
   const relocationLinks = [
@@ -103,7 +104,7 @@ export default function Footer() {
           {/* Logo & Brand Details */}
           <div className="lg:col-span-3 space-y-4">
             <div className="flex items-center space-x-2">
-              <ShieldCheck className="h-5 w-5 text-[#2c2724]" />
+              <Logo className="h-7 w-7 text-[#2c2724]" />
               <span className="text-lg font-bold tracking-tight text-[#2c2724]">
                 Nest<span className="text-[#2c2724]">Arrival</span>
               </span>
@@ -217,7 +218,7 @@ export default function Footer() {
           {/* Copyright Section */}
           <div className="flex flex-col items-center justify-between gap-4 md:flex-row text-[#aba296] text-[10px] pt-2">
             <p>© {new Date().getFullYear()} NestArrival Inc. All rights reserved.</p>
-            <p className="text-center md:text-right max-w-lg leading-relaxed">
+            <p className="text-center md:text-justify max-w-xl leading-relaxed hyphens-auto">
               NestArrival connects verified tenants with verified property owners through a trust-first ecosystem focused on transparency, safety, and international accessibility. Helping relocators secure trusted housing before moving abroad.
             </p>
           </div>

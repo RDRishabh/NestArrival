@@ -86,6 +86,41 @@ Last updated: June 1, 2026
 
 How to cancel: You can cancel your subscription at any time from your account settings. Cancellation takes effect at the end of your current billing period. You will not be charged again after cancellation.`,
     },
+    cookie: {
+      title: "Cookie Policy",
+      content: `# Cookie Policy
+Last updated: June 1, 2026
+
+## What Cookies We Use
+We use basic and essential session cookies to manage user logins and preserve safety status. No marketing or tracking cookies are enabled for third-party platforms.
+
+## Types of Cookies
+Essential cookies are required for the platform to function correctly. They manage your login session and keep your account secure. You cannot disable essential cookies.
+
+Analytics cookies (optional) help us understand how visitors use our site so we can improve it. These are only active if you have accepted them via our cookie consent banner.
+
+## Managing Cookies
+You can manage your cookie preferences at any time by clicking the Manage button on our cookie banner or clearing your browser cookies.`,
+    },
+    community: {
+      title: "Community Guidelines",
+      content: `# Community Guidelines
+Last updated: June 1, 2026
+
+## Our Standards
+We promote safety and respect for all members of our platform. NestArrival is a trust-first community designed to help verified tenants and owners connect safely.
+
+## Prohibited Behaviour
+The following are strictly prohibited and will result in immediate platform bans without eligibility for refunds:
+
+- Discrimination based on race, nationality, gender, religion, or any protected characteristic
+- Uploading fraudulent, altered, or fake identity or visa documents
+- Misrepresenting rental prices, property details, or availability
+- Harassment, threats, or abuse toward other platform members
+
+## Reporting
+If you witness any violation of these guidelines, please contact our support team immediately. We review all reports within 48 hours.`,
+    },
     verification: {
       title: "Verification Policy",
       content: `# Verification Policy
