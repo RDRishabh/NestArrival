@@ -70,6 +70,9 @@ export default function VerificationPageView() {
             setLoading(false);
           }
         }
+      })
+      .catch(() => {
+        router.push("/login");
       });
   }, [router]);
 

@@ -82,6 +82,10 @@ const URGENT_MATCH_ADDON = { price: 99 };
 // Helper: Send Mail Utility
 // -------------------------------------------------------------
 async function sendVerificationOtp(email, otp) {
+  console.log(`\n==================================================`);
+  console.log(`[NestArrival OTP LOG] Email: ${email} | OTP: ${otp}`);
+  console.log(`==================================================\n`);
+
   const host = process.env.SMTP_HOST;
   const port = process.env.SMTP_PORT;
   const user = process.env.SMTP_USER;
@@ -421,6 +425,42 @@ app.post("/api/auth/verify-otp", async (req, res) => {
     });
   } catch (err) {
     console.error("Verify OTP error:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+app.post("/api/auth/resend-otp", async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      return res.status(400).json({ error: "Email is required" });
+    }
+
+    const user = await prisma.user.findUnique({ where: { email: email.toLowerCase() } });
+    if (!user) {
+      return res.status(400).json({ error: "User not found" });
+    }
+
+    if (user.isVerified) {
+      return res.status(400).json({ error: "Account is already verified" });
+    }
+
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const otpExpiry = new Date(Date.now() + 15 * 60 * 1000);
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { otp, otpExpiry },
+    });
+
+    await sendVerificationOtp(user.email, otp);
+
+    res.json({
+      message: "A new OTP has been sent to your email.",
+      devOtp: otp,
+    });
+  } catch (err) {
+    console.error("Resend OTP error:", err);
     res.status(500).json({ error: "Server error" });
   }
 });

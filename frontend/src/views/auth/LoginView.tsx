@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Mail, Lock, KeyRound, AlertCircle, ArrowRight, Eye, EyeOff } from "lucide-react";
+import { Mail, Lock, KeyRound, AlertCircle, ArrowRight, Eye, EyeOff, RefreshCw, CheckCircle } from "lucide-react";
 import Logo from "@/components/Logo";
 import { authApi } from "@/apis/Authentication/auth";
 import { motion, AnimatePresence } from "framer-motion";
@@ -18,6 +18,8 @@ export default function LoginView() {
   const [otp, setOtp] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [resendLoading, setResendLoading] = useState(false);
+  const [resendSuccess, setResendSuccess] = useState(false);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -90,6 +92,22 @@ export default function LoginView() {
     }
   };
 
+  const handleResendOtp = async () => {
+    setResendLoading(true);
+    setResendSuccess(false);
+    setError("");
+    try {
+      await authApi.resendOtp({ email });
+      console.log("OTP resent to:", email);
+      setResendSuccess(true);
+      setTimeout(() => setResendSuccess(false), 5000);
+    } catch {
+      setError("Failed to resend OTP. Please try again.");
+    } finally {
+      setResendLoading(false);
+    }
+  };
+
   return (
     <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || ""}>
       <div className="flex min-h-screen bg-white font-sans overflow-hidden">
@@ -142,6 +160,12 @@ export default function LoginView() {
               </div>
             )}
 
+            {resendSuccess && (
+              <div className="mb-6 rounded-xl bg-green-50 border border-green-100 p-4 text-sm font-semibold text-green-700 flex items-center space-x-3">
+                <CheckCircle className="h-5 w-5 text-green-500 shrink-0" /><span>A new OTP has been sent to your email.</span>
+              </div>
+            )}
+
             <AnimatePresence mode="wait">
               {step === "LOGIN" ? (
                 <motion.div key="login" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
@@ -167,23 +191,23 @@ export default function LoginView() {
                       <div className="relative">
                         <span className="absolute inset-y-0 left-0 flex items-center pl-4 text-[#a89e8d]"><Lock className="h-4 w-4" /></span>
                         <input type={showPassword ? "text" : "password"} required value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" className="w-full rounded-2xl pl-11 pr-12 py-3.5 bg-[#fdfbf7] border border-[#eae1d3] text-[#2c2724] text-sm font-semibold outline-none focus:border-[#cfa052] focus:ring-1 focus:ring-[#cfa052] transition-all" />
-                        <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute inset-y-0 right-0 flex items-center pr-4 text-[#a89e8d] hover:text-[#2c2724] transition-colors">
+                        <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute inset-y-0 right-0 flex items-center pr-4 text-[#a89e8d] hover:text-[#2c2724] transition-colors cursor-pointer">
                           {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                         </button>
                       </div>
                       <div className="flex justify-end mt-2">
-                        <button type="button" className="text-xs font-bold text-[#cfa052] hover:text-[#b58942] transition-colors">Forgot Password?</button>
+                        <button type="button" className="text-xs font-bold text-[#cfa052] hover:text-[#b58942] transition-colors cursor-pointer">Forgot Password?</button>
                       </div>
                     </div>
 
-                    <button type="submit" disabled={loading} className="w-full bg-[#cfa052] hover:bg-[#b58942] text-white py-3.5 rounded-2xl font-bold text-sm shadow-[0_8px_20px_rgba(207,160,82,0.3)] transition-all flex justify-center items-center gap-2 group">
+                    <button type="submit" disabled={loading} className="w-full bg-[#cfa052] hover:bg-[#b58942] text-white py-3.5 rounded-2xl font-bold text-sm shadow-[0_8px_20px_rgba(207,160,82,0.3)] transition-all flex justify-center items-center gap-2 group disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer">
                       {loading ? "Signing in..." : "Sign In"}
                       {!loading && <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />}
                     </button>
                   </form>
 
                   <div className="mt-8 text-center text-sm font-medium text-[#5c544d]">
-                    Don't have an account?{" "}
+                    Don&apos;t have an account?{" "}
                     <Link href="/signup" className="text-[#cfa052] font-bold hover:underline">
                       Sign up
                     </Link>
@@ -198,11 +222,26 @@ export default function LoginView() {
                         <span className="absolute inset-y-0 left-0 flex items-center pl-4 text-[#a89e8d]"><KeyRound className="h-4 w-4" /></span>
                         <input type="text" required value={otp} onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))} placeholder="000000" className="w-full rounded-2xl pl-11 pr-4 py-3.5 bg-[#fdfbf7] border border-[#eae1d3] text-[#2c2724] text-lg font-bold tracking-[0.5em] outline-none text-center focus:border-[#cfa052] focus:ring-1 focus:ring-[#cfa052] transition-all" />
                       </div>
+                      <p className="text-[11px] text-[#8a7d6a] mt-2 text-center">Check your inbox at <span className="font-bold text-[#2c2724]">{email}</span></p>
                     </div>
 
-                    <button type="submit" disabled={loading || otp.length < 6} className="w-full bg-[#2c2724] hover:bg-[#1a1715] text-white py-3.5 rounded-2xl font-bold text-sm shadow-lg transition-all flex justify-center items-center gap-2 disabled:opacity-50">
+                    <button type="submit" disabled={loading || otp.length < 6} className="w-full bg-[#2c2724] hover:bg-[#1a1715] text-white py-3.5 rounded-2xl font-bold text-sm shadow-lg transition-all flex justify-center items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer">
                       {loading ? "Verifying..." : "Verify & Continue"}
                     </button>
+
+                    {/* Resend OTP */}
+                    <div className="text-center pt-2">
+                      <p className="text-xs text-[#8a7d6a] mb-2">Didn&apos;t receive the code?</p>
+                      <button
+                        type="button"
+                        onClick={handleResendOtp}
+                        disabled={resendLoading}
+                        className="inline-flex items-center gap-1.5 text-[#cfa052] hover:text-[#b58942] font-bold text-xs transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                      >
+                        <RefreshCw className={`h-3.5 w-3.5 ${resendLoading ? "animate-spin" : ""}`} />
+                        {resendLoading ? "Sending..." : "Resend OTP"}
+                      </button>
+                    </div>
                   </form>
                 </motion.div>
               )}

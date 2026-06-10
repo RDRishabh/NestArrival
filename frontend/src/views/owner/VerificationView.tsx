@@ -44,6 +44,9 @@ export default function VerificationView() {
             setLoading(false);
           }
         }
+      })
+      .catch(() => {
+        router.push("/login");
       });
   }, [router]);
 

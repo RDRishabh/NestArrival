@@ -121,7 +121,6 @@ function ContactFormContent() {
     try {
       console.log("Submitting Support Ticket:", formData);
 
-      // Simulate async API call
       await new Promise((resolve) => setTimeout(resolve, 800));
 
       setSubmitState({
@@ -154,8 +153,7 @@ function ContactFormContent() {
 
   return (
     <>
-      {/* ── Hero / Support Cards ── */}
-      <div className="min-h-screen bg-white text-[#2D2924] font-sans px-6 py-12 md:py-20 flex flex-col items-center justify-center">
+      <div className="min-h-screen bg-white text-[#2D2924] font-sans px-6 py-1 md:py-20 flex flex-col items-center justify-center">
         <motion.div
           initial="hidden"
           animate="visible"
@@ -164,7 +162,7 @@ function ContactFormContent() {
         >
           <motion.div
             variants={itemVariants}
-            className="inline-flex items-center gap-1.5 bg-[#F3EBE1] border border-[#E6DCD0] rounded-full px-4 py-1.5 text-[11px] font-semibold tracking-wider text-[#A38A70] uppercase mb-6 shadow-sm"
+            className="inline-flex items-center gap-1.5  border border-[#E6DCD0] rounded-full px-4 py-1.5 text-[11px] font-semibold tracking-wider text-[#A38A70] uppercase mb-6 shadow-sm"
           >
             <LifeBuoy className="w-3.5 h-3.5" />
             Support Portal
@@ -228,7 +226,6 @@ function ContactFormContent() {
         </motion.div>
       </div>
 
-      {/* ── Relocation Resources ── */}
       <div className="min-h-screen bg-[#FDFBF7] text-[#2D2924] font-sans px-6 py-16 md:py-24 flex items-center justify-center">
         <div className="w-full max-w-6xl">
           <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-10 md:mb-12">
@@ -320,10 +317,8 @@ function ContactFormContent() {
         </div>
       </div>
 
-      {/* ── Support Ticket Form ── */}
       <div className="min-h-screen bg-white text-[#2D2924] font-sans px-4 sm:px-6 py-16 md:py-24 flex items-center justify-center">
         <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-start">
-          {/* Left info column */}
           <div className="lg:col-span-5 flex flex-col space-y-8">
             <div>
               <h2 className="text-3xl font-bold tracking-tight text-[#1A1816] mb-4">
@@ -372,7 +367,6 @@ function ContactFormContent() {
             </div>
           </div>
 
-          {/* Right form column */}
           <motion.div
             initial={{ opacity: 0, y: 15 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -381,7 +375,6 @@ function ContactFormContent() {
             className="lg:col-span-7 bg-white border border-[#EDE6DC] rounded-3xl p-6 md:p-8 shadow-[0_18px_60px_rgba(45,41,36,0.10)] ring-1 ring-black/5"
           >
             <form onSubmit={handleSubmit} className="space-y-5">
-              {/* Identity */}
               <div className="relative">
                 <label className="block text-[11px] font-bold text-[#B39067] uppercase tracking-wide mb-1.5">
                   Who Are You?
@@ -400,7 +393,6 @@ function ContactFormContent() {
                 </div>
               </div>
 
-              {/* Name + Email */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 <div>
                   <label className="block text-[11px] font-bold text-[#B39067] uppercase tracking-wide mb-1.5">
@@ -428,7 +420,6 @@ function ContactFormContent() {
                 </div>
               </div>
 
-              {/* City + Permit */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 <div>
                   <label className="block text-[11px] font-bold text-[#B39067] uppercase tracking-wide mb-1.5">
@@ -461,7 +452,6 @@ function ContactFormContent() {
                 </div>
               </div>
 
-              {/* Subject */}
               <div>
                 <label className="block text-[11px] font-bold text-[#B39067] uppercase tracking-wide mb-1.5">
                   Subject
@@ -475,7 +465,6 @@ function ContactFormContent() {
                 />
               </div>
 
-              {/* Message */}
               <div>
                 <label className="block text-[11px] font-bold text-[#B39067] uppercase tracking-wide mb-1.5">
                   Message Detail
@@ -489,17 +478,15 @@ function ContactFormContent() {
                 />
               </div>
 
-              {/* ✅ Status message — lives right above the submit button */}
               {submitState.status !== "idle" && (
                 <motion.div
                   initial={{ opacity: 0, y: -6 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.3 }}
-                  className={`w-full rounded-xl px-4 py-3 text-xs md:text-sm font-medium border ${
-                    submitState.status === "success"
-                      ? "bg-emerald-50 border-emerald-200 text-emerald-700"
-                      : "bg-red-50 border-red-200 text-red-700"
-                  }`}
+                  className={`w-full rounded-xl px-4 py-3 text-xs md:text-sm font-medium border ${submitState.status === "success"
+                    ? "bg-emerald-50 border-emerald-200 text-emerald-700"
+                    : "bg-red-50 border-red-200 text-red-700"
+                    }`}
                 >
                   {submitState.message}
                 </motion.div>

@@ -218,7 +218,7 @@ export default function Footer() {
           {/* Copyright Section */}
           <div className="flex flex-col items-center justify-between gap-4 md:flex-row text-[#aba296] text-[10px] pt-2">
             <p>© {new Date().getFullYear()} NestArrival Inc. All rights reserved.</p>
-            <p className="text-center md:text-right max-w-lg leading-relaxed">
+            <p className="text-center md:text-justify max-w-xl leading-relaxed hyphens-auto">
               NestArrival connects verified tenants with verified property owners through a trust-first ecosystem focused on transparency, safety, and international accessibility. Helping relocators secure trusted housing before moving abroad.
             </p>
           </div>

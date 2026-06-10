@@ -3,13 +3,14 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { 
+import {
   BarChart3, ShieldCheck, Home, FileText, DollarSign,
   AlertTriangle, Check, X, Loader2, RefreshCw, Eye, Edit3, TrendingUp, Users, LogOut, Menu, Ban
 } from "lucide-react";
-import { 
-  ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, BarChart, Bar, Cell
+import {
+  ResponsiveContainer, LabelList, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, BarChart, Bar, Cell
 } from "recharts";
+
 import { motion, AnimatePresence } from "framer-motion";
 import { authApi } from "@/apis/Authentication/auth";
 import { adminApi } from "@/apis/Admin/admin";
@@ -18,47 +19,31 @@ import { listingsApi } from "@/apis/Listings/listings";
 export default function AdminDashboardView() {
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
-  
-  // App states
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [loadingUser, setLoadingUser] = useState(true);
   const [activeTab, setActiveTab] = useState<"analytics" | "verifications" | "listings" | "refunds" | "cms" | "users">("analytics");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
-  // Auditing history toggles
   const [verificationsShowHistory, setVerificationsShowHistory] = useState(false);
   const [listingsShowHistory, setListingsShowHistory] = useState(false);
-
-  // Users Directory states
   const [usersData, setUsersData] = useState<{ tenants: any[]; owners: any[] }>({ tenants: [], owners: [] });
   const [loadingUsers, setLoadingUsers] = useState(false);
   const [usersSearch, setUsersSearch] = useState("");
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [banReasonInput, setBanReasonInput] = useState("");
   const [processingBan, setProcessingBan] = useState<string | null>(null);
-
-  // Metrics states
   const [analytics, setAnalytics] = useState<any>(null);
   const [loadingAnalytics, setLoadingAnalytics] = useState(false);
-
-  // Queues states
   const [verifications, setVerifications] = useState<any[]>([]);
   const [loadingVerifications, setLoadingVerifications] = useState(false);
-  
   const [listingsQueue, setListingsQueue] = useState<any[]>([]);
   const [loadingListingsQueue, setLoadingListingsQueue] = useState(false);
-
   const [refunds, setRefunds] = useState<any[]>([]);
   const [loadingRefunds, setLoadingRefunds] = useState(false);
-
-  // CMS editor states
   const [cmsPages, setCmsPages] = useState<any[]>([]);
   const [loadingCms, setLoadingCms] = useState(false);
   const [selectedCmsPage, setSelectedCmsPage] = useState<any>(null);
   const [cmsTitle, setCmsTitle] = useState("");
   const [cmsContent, setCmsContent] = useState("");
-
-  // Audit form comments
   const [actionNotes, setActionNotes] = useState<Record<string, string>>({});
   const [actionFeedback, setActionFeedback] = useState<Record<string, string>>({});
   const [processingAction, setProcessingAction] = useState<string | null>(null);
@@ -69,10 +54,21 @@ export default function AdminDashboardView() {
   }, []);
 
   useEffect(() => {
-    if (currentUser) {
-      loadTabData();
+    if (selectedUser) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
     }
-  }, [currentUser, activeTab]);
+  }, [selectedUser]);
+
+
+  useEffect(() => {
+    if (selectedUser) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+  }, [selectedUser]);
 
   const fetchSession = async () => {
     try {
@@ -205,7 +201,6 @@ export default function AdminDashboardView() {
     }
   };
 
-  // Process User Verification Audit
   const handleActionVerification = async (userId: string, action: "APPROVE" | "REJECT") => {
     setProcessingAction(userId);
     try {
@@ -230,7 +225,6 @@ export default function AdminDashboardView() {
     }
   };
 
-  // Process Listing Moderation
   const handleModerateListing = async (listingId: string, action: "APPROVE" | "REJECT") => {
     setProcessingAction(listingId);
     try {
@@ -337,11 +331,9 @@ export default function AdminDashboardView() {
 
   return (
     <div className="light-theme-dashboard flex min-h-screen bg-content-dark text-[#f5f5f7]">
-      
-      {/* 1. Desktop Left Sidebar */}
+
       <aside className="hidden md:flex flex-col w-64 fixed inset-y-0 left-0 bg-sidebar-dark border-r border-contrast-dark z-30 p-6 justify-between">
         <div className="space-y-8">
-          {/* Logo */}
           <Link href="/" className="flex items-center space-x-2 group">
             <ShieldCheck className="h-6 w-6 text-[#d4ff4d] transition-transform duration-300 group-hover:scale-110" />
             <span className="text-lg font-bold tracking-tight text-white">
@@ -349,17 +341,15 @@ export default function AdminDashboardView() {
             </span>
           </Link>
 
-          {/* Navigation Tab Menu */}
           <div className="space-y-1">
             <span className="text-[9px] font-extrabold text-zinc-500 uppercase tracking-wider block px-2.5 mb-2">ADMIN CONSOLE</span>
-            
+
             <button
               onClick={() => setActiveTab("analytics")}
-              className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                activeTab === "analytics"
-                  ? "bg-[#d4ff4d]/5 text-[#d4ff4d] border-l-2 border-[#d4ff4d]"
-                  : "text-zinc-400 hover:text-white hover:bg-zinc-900/30"
-              }`}
+              className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${activeTab === "analytics"
+                ? "bg-[#d4ff4d]/5 text-[#d4ff4d] border-l-2 border-[#d4ff4d]"
+                : "text-zinc-400 hover:text-white hover:bg-zinc-900/30"
+                }`}
             >
               <BarChart3 className="h-4 w-4" />
               <span>Analytics Dashboard</span>
@@ -367,11 +357,10 @@ export default function AdminDashboardView() {
 
             <button
               onClick={() => setActiveTab("verifications")}
-              className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                activeTab === "verifications"
-                  ? "bg-[#d4ff4d]/5 text-[#d4ff4d] border-l-2 border-[#d4ff4d]"
-                  : "text-zinc-400 hover:text-white hover:bg-zinc-900/30"
-              }`}
+              className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${activeTab === "verifications"
+                ? "bg-[#d4ff4d]/5 text-[#d4ff4d] border-l-2 border-[#d4ff4d]"
+                : "text-zinc-400 hover:text-white hover:bg-zinc-900/30"
+                }`}
             >
               <ShieldCheck className="h-4 w-4" />
               <span>Verification Queue</span>
@@ -379,11 +368,10 @@ export default function AdminDashboardView() {
 
             <button
               onClick={() => setActiveTab("listings")}
-              className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                activeTab === "listings"
-                  ? "bg-[#d4ff4d]/5 text-[#d4ff4d] border-l-2 border-[#d4ff4d]"
-                  : "text-zinc-400 hover:text-white hover:bg-zinc-900/30"
-              }`}
+              className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${activeTab === "listings"
+                ? "bg-[#d4ff4d]/5 text-[#d4ff4d] border-l-2 border-[#d4ff4d]"
+                : "text-zinc-400 hover:text-white hover:bg-zinc-900/30"
+                }`}
             >
               <Home className="h-4 w-4" />
               <span>Listing Moderation</span>
@@ -391,11 +379,10 @@ export default function AdminDashboardView() {
 
             <button
               onClick={() => setActiveTab("refunds")}
-              className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                activeTab === "refunds"
-                  ? "bg-[#d4ff4d]/5 text-[#d4ff4d] border-l-2 border-[#d4ff4d]"
-                  : "text-zinc-400 hover:text-white hover:bg-zinc-900/30"
-              }`}
+              className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${activeTab === "refunds"
+                ? "bg-[#d4ff4d]/5 text-[#d4ff4d] border-l-2 border-[#d4ff4d]"
+                : "text-zinc-400 hover:text-white hover:bg-zinc-900/30"
+                }`}
             >
               <DollarSign className="h-4 w-4" />
               <span>Refund Claims</span>
@@ -403,11 +390,10 @@ export default function AdminDashboardView() {
 
             <button
               onClick={() => setActiveTab("cms")}
-              className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                activeTab === "cms"
-                  ? "bg-[#d4ff4d]/5 text-[#d4ff4d] border-l-2 border-[#d4ff4d]"
-                  : "text-zinc-400 hover:text-white hover:bg-zinc-900/30"
-              }`}
+              className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${activeTab === "cms"
+                ? "bg-[#d4ff4d]/5 text-[#d4ff4d] border-l-2 border-[#d4ff4d]"
+                : "text-zinc-400 hover:text-white hover:bg-zinc-900/30"
+                }`}
             >
               <FileText className="h-4 w-4" />
               <span>CMS Editor</span>
@@ -415,11 +401,10 @@ export default function AdminDashboardView() {
 
             <button
               onClick={() => setActiveTab("users")}
-              className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                activeTab === "users"
-                  ? "bg-[#d4ff4d]/5 text-[#d4ff4d] border-l-2 border-[#d4ff4d]"
-                  : "text-zinc-400 hover:text-white hover:bg-zinc-900/30"
-              }`}
+              className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${activeTab === "users"
+                ? "bg-[#d4ff4d]/5 text-[#d4ff4d] border-l-2 border-[#d4ff4d]"
+                : "text-zinc-400 hover:text-white hover:bg-zinc-900/30"
+                }`}
             >
               <Users className="h-4 w-4" />
               <span>Users Directory</span>
@@ -487,45 +472,40 @@ export default function AdminDashboardView() {
                 <div className="space-y-1">
                   <button
                     onClick={() => { setActiveTab("analytics"); setMobileMenuOpen(false); }}
-                    className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-xs font-bold ${
-                      activeTab === "analytics" ? "bg-[#d4ff4d]/5 text-[#d4ff4d]" : "text-zinc-400"
-                    }`}
+                    className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-xs font-bold ${activeTab === "analytics" ? "bg-[#d4ff4d]/5 text-[#d4ff4d]" : "text-zinc-400"
+                      }`}
                   >
                     <BarChart3 className="h-4 w-4" />
                     <span>Analytics</span>
                   </button>
                   <button
                     onClick={() => { setActiveTab("verifications"); setMobileMenuOpen(false); }}
-                    className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-xs font-bold ${
-                      activeTab === "verifications" ? "bg-[#d4ff4d]/5 text-[#d4ff4d]" : "text-zinc-400"
-                    }`}
+                    className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-xs font-bold ${activeTab === "verifications" ? "bg-[#d4ff4d]/5 text-[#d4ff4d]" : "text-zinc-400"
+                      }`}
                   >
                     <ShieldCheck className="h-4 w-4" />
                     <span>Verifications</span>
                   </button>
                   <button
                     onClick={() => { setActiveTab("listings"); setMobileMenuOpen(false); }}
-                    className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-xs font-bold ${
-                      activeTab === "listings" ? "bg-[#d4ff4d]/5 text-[#d4ff4d]" : "text-zinc-400"
-                    }`}
+                    className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-xs font-bold ${activeTab === "listings" ? "bg-[#d4ff4d]/5 text-[#d4ff4d]" : "text-zinc-400"
+                      }`}
                   >
                     <Home className="h-4 w-4" />
                     <span>Moderation</span>
                   </button>
                   <button
                     onClick={() => { setActiveTab("refunds"); setMobileMenuOpen(false); }}
-                    className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-xs font-bold ${
-                      activeTab === "refunds" ? "bg-[#d4ff4d]/5 text-[#d4ff4d]" : "text-zinc-400"
-                    }`}
+                    className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-xs font-bold ${activeTab === "refunds" ? "bg-[#d4ff4d]/5 text-[#d4ff4d]" : "text-zinc-400"
+                      }`}
                   >
                     <DollarSign className="h-4 w-4" />
                     <span>Refund Claims</span>
                   </button>
                   <button
                     onClick={() => { setActiveTab("cms"); setMobileMenuOpen(false); }}
-                    className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-xs font-bold ${
-                      activeTab === "cms" ? "bg-[#d4ff4d]/5 text-[#d4ff4d]" : "text-zinc-400"
-                    }`}
+                    className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-xs font-bold ${activeTab === "cms" ? "bg-[#d4ff4d]/5 text-[#d4ff4d]" : "text-zinc-400"
+                      }`}
                   >
                     <FileText className="h-4 w-4" />
                     <span>CMS Editor</span>
@@ -533,16 +513,15 @@ export default function AdminDashboardView() {
 
                   <button
                     onClick={() => { setActiveTab("users"); setMobileMenuOpen(false); }}
-                    className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-xs font-bold ${
-                      activeTab === "users" ? "bg-[#d4ff4d]/5 text-[#d4ff4d]" : "text-zinc-400"
-                    }`}
+                    className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-xs font-bold ${activeTab === "users" ? "bg-[#d4ff4d]/5 text-[#d4ff4d]" : "text-zinc-400"
+                      }`}
                   >
                     <Users className="h-4 w-4" />
                     <span>Users Directory</span>
                   </button>
                 </div>
               </div>
-              
+
               <div className="space-y-4 pt-4 border-t border-zinc-900">
                 <div className="px-2">
                   <p className="text-xs font-bold text-white truncate">{currentUser?.fullName || "Admin"}</p>
@@ -564,14 +543,14 @@ export default function AdminDashboardView() {
       {/* 3. Right Content Pane */}
       <div className="flex-grow md:pl-64 flex flex-col min-h-screen bg-content-dark pt-16 md:pt-0">
         <main className="flex-grow p-6 md:p-10 relative z-10">
-          
+
           <div className="flex items-center justify-between mb-8">
             <h1 className="text-xl font-bold text-white tracking-tight">Administration Console</h1>
             <button
               onClick={loadTabData}
               className="p-2.5 border border-contrast-dark bg-zinc-950/80 hover:bg-zinc-900 hover:text-white rounded-lg transition-colors cursor-pointer"
             >
-              <RefreshCw className="h-4 w-4 text-zinc-400" />
+              <RefreshCw className="h-4 w-4 text-[#d4ff4d] hover:text-white" />
             </button>
           </div>
 
@@ -659,15 +638,18 @@ export default function AdminDashboardView() {
                                 <AreaChart data={getRevenueData()} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                                   <defs>
                                     <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                                      <stop offset="5%" stopColor="#d4ff4d" stopOpacity={0.25}/>
-                                      <stop offset="95%" stopColor="#d4ff4d" stopOpacity={0}/>
+                                      <stop offset="5%" stopColor="#d4ff4d" stopOpacity={0.25} />
+                                      <stop offset="95%" stopColor="#d4ff4d" stopOpacity={0} />
                                     </linearGradient>
                                   </defs>
                                   <CartesianGrid strokeDasharray="3 3" stroke="#1d1d22" />
                                   <XAxis dataKey="name" stroke="#52525b" />
                                   <YAxis stroke="#52525b" />
-                                  <Tooltip 
-                                    contentStyle={{ backgroundColor: "#000", border: "1px solid #1d1d22", borderRadius: "8px", color: "#fff" }}
+                                  <Tooltip
+                                    contentStyle={{ backgroundColor: "#111", border: "1px solid #333", borderRadius: "8px", color: "#fff", fontSize: "11px" }}
+                                    labelStyle={{ color: "#d4ff4d", fontWeight: "bold", marginBottom: "4px" }}
+                                    itemStyle={{ color: "#ffffff" }}
+                                    cursor={{ fill: "rgba(255,255,255,0.02)" }}
                                   />
                                   <Area type="monotone" dataKey="amount" stroke="#d4ff4d" strokeWidth={2} fillOpacity={1} fill="url(#colorRevenue)" />
                                 </AreaChart>
@@ -694,11 +676,14 @@ export default function AdminDashboardView() {
                                   <CartesianGrid strokeDasharray="3 3" stroke="#1d1d22" />
                                   <XAxis dataKey="name" stroke="#52525b" />
                                   <YAxis stroke="#52525b" />
-                                  <Tooltip 
-                                    contentStyle={{ backgroundColor: "#000", border: "1px solid #1d1d22", borderRadius: "8px", color: "#fff" }}
+                                  <Tooltip
+                                    contentStyle={{ backgroundColor: "#111", border: "1px solid #333", borderRadius: "8px", color: "#fff", fontSize: "11px" }}
+                                    labelStyle={{ color: "#d4ff4d", fontWeight: "bold", marginBottom: "4px" }}
+                                    itemStyle={{ color: "#ffffff" }}
                                     cursor={{ fill: "rgba(255,255,255,0.02)" }}
                                   />
                                   <Bar dataKey="count" radius={[4, 4, 0, 0]} barSize={40}>
+                                    <LabelList dataKey="count" position="top" fill="#fff" fontSize={10} />
                                     {getRegistrationsData().map((entry, index) => (
                                       <Cell key={`cell-${index}`} fill={entry.color} />
                                     ))}
@@ -734,7 +719,7 @@ export default function AdminDashboardView() {
                       </button>
                     </div>
                   </div>
-                  
+
                   {loadingVerifications ? (
                     <div className="flex justify-center py-12">
                       <Loader2 className="h-8 w-8 animate-spin text-[#d4ff4d]" />
@@ -748,93 +733,91 @@ export default function AdminDashboardView() {
                       {verifications
                         .filter(req => verificationsShowHistory ? (req.user.verificationStatus === "VERIFIED" || req.user.verificationStatus === "REJECTED") : req.user.verificationStatus === "PENDING_VERIFICATION")
                         .map((req) => (
-                        <div key={req.id} className="bg-card-dark p-6 rounded-xl border border-contrast-dark shadow-xl space-y-4">
-                          <div className="flex items-center justify-between border-b border-contrast-dark pb-3">
-                            <div>
-                              <span className="font-bold text-sm text-white">{req.user.fullName}</span>
-                              <span className="text-zinc-500 ml-2">({req.user.email})</span>
-                            </div>
-                            <span className={`px-2 py-0.5 rounded-lg font-bold uppercase ${
-                              req.user.role === "TENANT" 
-                                ? "bg-[#d4ff4d]/10 border border-[#d4ff4d]/20 text-[#d4ff4d]" 
+                          <div key={req.id} className="bg-card-dark p-6 rounded-xl border border-contrast-dark shadow-xl space-y-4">
+                            <div className="flex items-center justify-between border-b border-contrast-dark pb-3">
+                              <div>
+                                <span className="font-bold text-sm text-white">{req.user.fullName}</span>
+                                <span className="text-zinc-500 ml-2">({req.user.email})</span>
+                              </div>
+                              <span className={`px-2 py-0.5 rounded-lg font-bold uppercase ${req.user.role === "TENANT"
+                                ? "bg-[#d4ff4d]/10 border border-[#d4ff4d]/20 text-[#d4ff4d]"
                                 : "bg-zinc-900 border border-zinc-800 text-white"
-                            }`}>
-                              {req.user.role}
-                            </span>
-                          </div>
-
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                            <div className="space-y-2.5">
-                              <p><strong className="text-zinc-500 uppercase text-[9px] tracking-wider">Residency status:</strong> {req.residencyStatus}</p>
-                              <p><strong className="text-zinc-500 uppercase text-[9px] tracking-wider">Immigration checks:</strong> Verified declaration signature matched</p>
-                              
-                              <div className="space-y-1.5 pt-1">
-                                <span className="font-bold text-zinc-400">Uploaded Attachments:</span>
-                                <div className="space-y-1">
-                                  {req.documentUrls.map((url: string, index: number) => (
-                                    <a
-                                      key={index}
-                                      href={url}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      className="block text-[#d4ff4d] font-bold hover:underline"
-                                    >
-                                      📄 Open Document {index + 1} ({req.documentTypes[index] || "Attachment"})
-                                    </a>
-                                  ))}
-                                </div>
-                              </div>
+                                }`}>
+                                {req.user.role}
+                              </span>
                             </div>
 
-                            {/* Review form controls */}
-                            {req.user.verificationStatus === "PENDING_VERIFICATION" ? (
-                              <div className="space-y-3 bg-zinc-950/40 border border-contrast-dark p-4 rounded-xl">
-                                <div>
-                                  <label className="block text-zinc-400 font-bold mb-1.5">Auditor Auditing Notes</label>
-                                  <input
-                                    type="text"
-                                    placeholder="Add rejection reason or approval comment..."
-                                    value={actionNotes[req.userId] || ""}
-                                    onChange={(e) => setActionNotes({ ...actionNotes, [req.userId]: e.target.value })}
-                                    className="w-full rounded-lg px-3 py-2.5 glass-input text-white text-xs"
-                                  />
-                                </div>
-                                <div className="flex gap-2 justify-end">
-                                  <button
-                                    onClick={() => handleActionVerification(req.userId, "REJECT")}
-                                    disabled={processingAction === req.userId}
-                                    className="rounded-lg border border-red-900 bg-red-955/10 text-red-400 px-4 py-2 font-bold hover:bg-red-955/20 transition-colors flex items-center gap-1 cursor-pointer"
-                                  >
-                                    <X className="h-3.5 w-3.5" />
-                                    <span>Reject</span>
-                                  </button>
-                                  <button
-                                    onClick={() => handleActionVerification(req.userId, "APPROVE")}
-                                    disabled={processingAction === req.userId}
-                                    className="rounded-lg bg-[#d4ff4d] text-black px-4 py-2 font-bold hover:bg-[#e2ff80] transition-colors flex items-center gap-1 cursor-pointer shadow-[0_0_10px_rgba(212,255,77,0.15)]"
-                                  >
-                                    <Check className="h-3.5 w-3.5" />
-                                    <span>Approve Vetting</span>
-                                  </button>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                              <div className="space-y-2.5">
+                                <p><strong className="text-zinc-500 uppercase text-[9px] tracking-wider">Residency status:</strong> {req.residencyStatus}</p>
+                                <p><strong className="text-zinc-500 uppercase text-[9px] tracking-wider">Immigration checks:</strong> Verified declaration signature matched</p>
+
+                                <div className="space-y-1.5 pt-1">
+                                  <span className="font-bold text-zinc-400">Uploaded Attachments:</span>
+                                  <div className="space-y-1">
+                                    {req.documentUrls.map((url: string, index: number) => (
+                                      <a
+                                        key={index}
+                                        href={url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="block text-[#d4ff4d] font-bold hover:underline"
+                                      >
+                                        📄 Open Document {index + 1} ({req.documentTypes[index] || "Attachment"})
+                                      </a>
+                                    ))}
+                                  </div>
                                 </div>
                               </div>
-                            ) : (
-                              <div className="flex flex-col items-center justify-center bg-zinc-950/20 border border-contrast-dark p-6 rounded-xl space-y-2 text-center">
-                                <span className={`text-[10px] font-extrabold px-3 py-1 rounded-full uppercase tracking-wider ${
-                                  req.user.verificationStatus === "VERIFIED"
+
+                              {/* Review form controls */}
+                              {req.user.verificationStatus === "PENDING_VERIFICATION" ? (
+                                <div className="space-y-3 bg-zinc-950/40 border border-contrast-dark p-4 rounded-xl">
+                                  <div>
+                                    <label className="block text-zinc-400 font-bold mb-1.5">Auditor Auditing Notes</label>
+                                    <input
+                                      type="text"
+                                      placeholder="Add rejection reason or approval comment..."
+                                      value={actionNotes[req.userId] || ""}
+                                      onChange={(e) => setActionNotes({ ...actionNotes, [req.userId]: e.target.value })}
+                                      className="w-full rounded-lg px-3 py-2.5 glass-input text-white text-xs"
+                                    />
+                                  </div>
+                                  <div className="flex gap-2 justify-end">
+                                    <button
+                                      onClick={() => handleActionVerification(req.userId, "REJECT")}
+                                      disabled={processingAction === req.userId}
+                                      className="rounded-lg border border-red-900 bg-red-955/10 text-red-400 px-4 py-2 font-bold hover:bg-red-955/20 transition-colors flex items-center gap-1 cursor-pointer"
+                                    >
+                                      <X className="h-3.5 w-3.5" />
+                                      <span>Reject</span>
+                                    </button>
+                                    <button
+                                      onClick={() => handleActionVerification(req.userId, "APPROVE")}
+                                      disabled={processingAction === req.userId}
+                                      className="rounded-lg bg-[#d4ff4d] text-black px-4 py-2 font-bold hover:bg-[#e2ff80] transition-colors flex items-center gap-1 cursor-pointer shadow-[0_0_10px_rgba(212,255,77,0.15)]"
+                                    >
+                                      <Check className="h-3.5 w-3.5" />
+                                      <span>Approve Vetting</span>
+                                    </button>
+                                  </div>
+                                </div>
+                              ) : (
+                                <div className="flex flex-col items-center justify-center bg-zinc-950/20 border border-contrast-dark p-6 rounded-xl space-y-2 text-center">
+                                  <span className={`text-[10px] font-extrabold px-3 py-1 rounded-full uppercase tracking-wider ${req.user.verificationStatus === "VERIFIED"
                                     ? "bg-emerald-950/40 border border-emerald-900/30 text-emerald-450"
                                     : "bg-red-950/40 border border-red-900/30 text-red-450"
-                                }`}>
-                                  Status: {req.user.verificationStatus}
-                                </span>
-                                {req.adminNotes && (
-                                  <p className="text-zinc-500 italic mt-1 max-w-xs">Notes: {req.adminNotes}</p>
-                                )}
-                              </div>
-                            )}
+                                    }`}>
+                                    Status: {req.user.verificationStatus}
+                                  </span>
+                                  {req.adminNotes && (
+                                    <p className="text-zinc-500 italic mt-1 max-w-xs">Notes: {req.adminNotes}</p>
+                                  )}
+                                </div>
+                              )}
+                            </div>
                           </div>
-                        </div>
-                      ))}
+                        ))}
                     </div>
                   )}
                 </div>
@@ -860,7 +843,7 @@ export default function AdminDashboardView() {
                       </button>
                     </div>
                   </div>
-                  
+
                   {loadingListingsQueue ? (
                     <div className="flex justify-center py-12">
                       <Loader2 className="h-8 w-8 animate-spin text-[#d4ff4d]" />
@@ -874,66 +857,65 @@ export default function AdminDashboardView() {
                       {listingsQueue
                         .filter(item => listingsShowHistory ? (item.status === "APPROVED" || item.status === "REJECTED") : item.status === "PENDING_REVIEW")
                         .map((item) => (
-                        <div key={item.id} className="bg-card-dark p-6 rounded-xl border border-contrast-dark shadow-xl space-y-4">
-                          <div className="flex items-center justify-between border-b border-contrast-dark pb-3">
-                            <div>
-                              <span className="font-bold text-sm text-white">{item.title}</span>
-                              <span className="text-zinc-500 ml-2">(City: {item.city})</span>
-                            </div>
-                            <span className={`px-2 py-0.5 rounded-lg font-bold uppercase ${
-                              item.status === "APPROVED"
+                          <div key={item.id} className="bg-card-dark p-6 rounded-xl border border-contrast-dark shadow-xl space-y-4">
+                            <div className="flex items-center justify-between border-b border-contrast-dark pb-3">
+                              <div>
+                                <span className="font-bold text-sm text-white">{item.title}</span>
+                                <span className="text-zinc-500 ml-2">(City: {item.city})</span>
+                              </div>
+                              <span className={`px-2 py-0.5 rounded-lg font-bold uppercase ${item.status === "APPROVED"
                                 ? "bg-emerald-950/40 border border-emerald-850 text-emerald-450"
                                 : item.status === "PENDING_REVIEW"
-                                ? "bg-[#d4ff4d]/10 border border-[#d4ff4d]/20 text-[#d4ff4d]"
-                                : "bg-red-955 border border-red-900 text-red-400"
-                            }`}>
-                              {item.status}
-                            </span>
-                          </div>
-
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                            <div className="space-y-2.5">
-                              <p><strong className="text-zinc-500 uppercase text-[9px] tracking-wider">Landlord owner:</strong> {item.owner?.fullName || "Owner"}</p>
-                              <p><strong className="text-zinc-500 uppercase text-[9px] tracking-wider">Rent amount:</strong> CAD ${item.rent} / month</p>
-                              <p><strong className="text-zinc-500 uppercase text-[9px] tracking-wider">Address:</strong> {item.location}</p>
-                              <p><strong className="text-zinc-500 uppercase text-[9px] tracking-wider">Property specs:</strong> {item.bedrooms} Bed, {item.bathrooms} Bath</p>
-                              <p><strong className="text-zinc-500 font-bold block mt-2">Details:</strong> {item.description}</p>
+                                  ? "bg-[#d4ff4d]/10 border border-[#d4ff4d]/20 text-[#d4ff4d]"
+                                  : "bg-red-955 border border-red-900 text-red-400"
+                                }`}>
+                                {item.status}
+                              </span>
                             </div>
 
-                            {/* Moderation Controls */}
-                            {item.status === "PENDING_REVIEW" && (
-                              <div className="space-y-3 bg-zinc-950/40 border border-contrast-dark p-4 rounded-xl flex flex-col justify-between">
-                                <div>
-                                  <label className="block text-zinc-400 font-bold mb-1.5">Feedback Comments</label>
-                                  <input
-                                    type="text"
-                                    placeholder="Reason for listing rejection or special notice..."
-                                    value={actionFeedback[item.id] || ""}
-                                    onChange={(e) => setActionFeedback({ ...actionFeedback, [item.id]: e.target.value })}
-                                    className="w-full rounded-lg px-3 py-2.5 glass-input text-white text-xs"
-                                  />
-                                </div>
-                                <div className="flex gap-2 justify-end">
-                                  <button
-                                    onClick={() => handleModerateListing(item.id, "REJECT")}
-                                    disabled={processingAction === item.id}
-                                    className="rounded-lg border border-red-900 bg-red-955/10 text-red-400 px-4 py-2.5 font-bold hover:bg-red-955/20 transition-colors cursor-pointer"
-                                  >
-                                    Reject Listing
-                                  </button>
-                                  <button
-                                    onClick={() => handleModerateListing(item.id, "APPROVE")}
-                                    disabled={processingAction === item.id}
-                                    className="rounded-lg bg-[#d4ff4d] text-black px-4 py-2.5 font-bold hover:bg-[#e2ff80] transition-all cursor-pointer shadow-[0_0_10px_rgba(212,255,77,0.15)]"
-                                  >
-                                    Approve Listing
-                                  </button>
-                                </div>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                              <div className="space-y-2.5">
+                                <p><strong className="text-zinc-500 uppercase text-[9px] tracking-wider">Landlord owner:</strong> {item.owner?.fullName || "Owner"}</p>
+                                <p><strong className="text-zinc-500 uppercase text-[9px] tracking-wider">Rent amount:</strong> CAD ${item.rent} / month</p>
+                                <p><strong className="text-zinc-500 uppercase text-[9px] tracking-wider">Address:</strong> {item.location}</p>
+                                <p><strong className="text-zinc-500 uppercase text-[9px] tracking-wider">Property specs:</strong> {item.bedrooms} Bed, {item.bathrooms} Bath</p>
+                                <p><strong className="text-zinc-500 font-bold block mt-2">Details:</strong> {item.description}</p>
                               </div>
-                            )}
+
+                              {/* Moderation Controls */}
+                              {item.status === "PENDING_REVIEW" && (
+                                <div className="space-y-3 bg-zinc-950/40 border border-contrast-dark p-4 rounded-xl flex flex-col justify-between">
+                                  <div>
+                                    <label className="block text-zinc-400 font-bold mb-1.5">Feedback Comments</label>
+                                    <input
+                                      type="text"
+                                      placeholder="Reason for listing rejection or special notice..."
+                                      value={actionFeedback[item.id] || ""}
+                                      onChange={(e) => setActionFeedback({ ...actionFeedback, [item.id]: e.target.value })}
+                                      className="w-full rounded-lg px-3 py-2.5 glass-input text-white text-xs"
+                                    />
+                                  </div>
+                                  <div className="flex gap-2 justify-end">
+                                    <button
+                                      onClick={() => handleModerateListing(item.id, "REJECT")}
+                                      disabled={processingAction === item.id}
+                                      className="rounded-lg border border-red-900 bg-red-955/10 text-red-400 px-4 py-2.5 font-bold hover:bg-red-955/20 transition-colors cursor-pointer"
+                                    >
+                                      Reject Listing
+                                    </button>
+                                    <button
+                                      onClick={() => handleModerateListing(item.id, "APPROVE")}
+                                      disabled={processingAction === item.id}
+                                      className="rounded-lg bg-[#d4ff4d] text-black px-4 py-2.5 font-bold hover:bg-[#e2ff80] transition-all cursor-pointer shadow-[0_0_10px_rgba(212,255,77,0.15)]"
+                                    >
+                                      Approve Listing
+                                    </button>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
                           </div>
-                        </div>
-                      ))}
+                        ))}
                     </div>
                   )}
                 </div>
@@ -943,7 +925,7 @@ export default function AdminDashboardView() {
               {activeTab === "refunds" && (
                 <div className="space-y-6 text-xs text-zinc-350">
                   <h2 className="text-base font-bold text-white">Refund Claims Queue</h2>
-                  
+
                   {loadingRefunds ? (
                     <div className="flex justify-center py-12">
                       <Loader2 className="h-8 w-8 animate-spin text-[#d4ff4d]" />
@@ -961,13 +943,12 @@ export default function AdminDashboardView() {
                               <span className="font-bold text-sm text-white">{req.user.fullName}</span>
                               <span className="text-zinc-500 ml-2">({req.user.email})</span>
                             </div>
-                            <span className={`px-2 py-0.5 rounded-lg font-bold uppercase ${
-                              req.status === "APPROVED"
-                                ? "bg-emerald-950/40 border border-emerald-805 text-emerald-450"
-                                : req.status === "PENDING"
+                            <span className={`px-2 py-0.5 rounded-lg font-bold uppercase ${req.status === "APPROVED"
+                              ? "bg-emerald-950/40 border border-emerald-805 text-emerald-450"
+                              : req.status === "PENDING"
                                 ? "bg-[#d4ff4d]/10 border border-[#d4ff4d]/20 text-[#d4ff4d]"
                                 : "bg-red-955 border border-red-900 text-red-400"
-                            }`}>
+                              }`}>
                               {req.status}
                             </span>
                           </div>
@@ -976,7 +957,7 @@ export default function AdminDashboardView() {
                             <div className="space-y-3">
                               <p><strong className="text-zinc-500 uppercase text-[9px] tracking-wider">Plan details:</strong> {req.subscription.name} (CAD ${req.subscription.price})</p>
                               <p><strong className="text-zinc-500 uppercase text-[9px] tracking-wider">Claimant rationale:</strong> "{req.reason}"</p>
-                              
+
                               {/* Auto eligibility calculations check! */}
                               <div className="p-3.5 rounded-xl border border-contrast-dark bg-zinc-950/40 space-y-2.5">
                                 <span className="font-bold text-zinc-200 block text-[10px] uppercase tracking-wider">System Auto-Audit Summary:</span>
@@ -985,11 +966,10 @@ export default function AdminDashboardView() {
                                   <p>- Owner replies received inside chat: <strong>{req.analytics.ownerRepliesReceived}</strong></p>
                                   <div className="mt-2.5 flex items-center space-x-2">
                                     <span>Automatic Refund Eligibility status:</span>
-                                    <span className={`font-bold uppercase ${
-                                      req.analytics.isEligible 
-                                        ? "text-[#d4ff4d] bg-[#d4ff4d]/5 border border-[#d4ff4d]/20" 
-                                        : "text-red-450 bg-red-955/15 border border-red-900/60"
-                                    } px-2 py-0.5 rounded text-[10px]`}>
+                                    <span className={`font-bold uppercase ${req.analytics.isEligible
+                                      ? "text-[#d4ff4d] bg-[#d4ff4d]/5 border border-[#d4ff4d]/20"
+                                      : "text-red-450 bg-red-955/15 border border-red-900/60"
+                                      } px-2 py-0.5 rounded text-[10px]`}>
                                       {req.analytics.isEligible ? "ELIGIBLE" : "INELIGIBLE"}
                                     </span>
                                   </div>
@@ -1032,7 +1012,7 @@ export default function AdminDashboardView() {
               {/* TAB 5: CMS content editor */}
               {activeTab === "cms" && (
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-xs h-[500px]">
-                  {/* Sidebar legal docs lists */}
+
                   <div className="md:col-span-1 border border-contrast-dark bg-card-dark rounded-xl overflow-y-auto">
                     <div className="p-4 border-b border-contrast-dark font-bold text-white text-sm">
                       Legal Documents List
@@ -1042,9 +1022,8 @@ export default function AdminDashboardView() {
                         <button
                           key={page.id}
                           onClick={() => handleSelectCmsPage(page)}
-                          className={`w-full text-left p-4 flex flex-col gap-1 transition-all cursor-pointer ${
-                            selectedCmsPage?.id === page.id ? "bg-[#d4ff4d]/[0.02] border-l-2 border-[#d4ff4d] text-[#d4ff4d]" : "hover:bg-zinc-900/20 text-zinc-400"
-                          }`}
+                          className={`w-full text-left p-4 flex flex-col gap-1 transition-all cursor-pointer ${selectedCmsPage?.id === page.id ? "bg-[#d4ff4d]/[0.02] border-l-2 border-[#d4ff4d] text-[#d4ff4d]" : "hover:bg-zinc-900/20 text-zinc-400"
+                            }`}
                         >
                           <span className="font-bold text-zinc-200">{page.title}</span>
                           <span className="text-[9px] text-zinc-550 font-extrabold uppercase tracking-wider block mt-0.5">ID: {page.id}</span>
@@ -1053,7 +1032,7 @@ export default function AdminDashboardView() {
                     </div>
                   </div>
 
-                  {/* Editing Card fields */}
+
                   <div className="md:col-span-2 border border-contrast-dark bg-card-dark rounded-xl flex flex-col justify-between overflow-hidden">
                     {selectedCmsPage ? (
                       <form onSubmit={handleUpdateCmsPage} className="flex flex-col justify-between h-full">
@@ -1112,7 +1091,7 @@ export default function AdminDashboardView() {
                 </div>
               )}
 
-              {/* TAB 6: Users Directory Tab */}
+
               {activeTab === "users" && (
                 <div className="space-y-6 text-xs text-zinc-350">
                   <div className="flex justify-between items-center border-b border-contrast-dark pb-3">
@@ -1144,8 +1123,8 @@ export default function AdminDashboardView() {
                           {usersData.tenants
                             .filter(u => u.fullName.toLowerCase().includes(usersSearch.toLowerCase()) || u.email.toLowerCase().includes(usersSearch.toLowerCase()))
                             .map((u) => (
-                              <div 
-                                key={u.id} 
+                              <div
+                                key={u.id}
                                 onClick={() => setSelectedUser(u)}
                                 className="p-3 bg-zinc-950/60 border border-zinc-900 hover:border-[#d4ff4d]/40 hover:bg-zinc-950 transition-all rounded-lg flex items-center justify-between cursor-pointer"
                               >
@@ -1157,13 +1136,12 @@ export default function AdminDashboardView() {
                                   {u.isBanned && (
                                     <span className="bg-red-955 border border-red-900 text-red-400 px-2 py-0.5 rounded text-[8px] font-extrabold uppercase">Banned</span>
                                   )}
-                                  <span className={`px-2 py-0.5 rounded text-[8px] font-bold uppercase ${
-                                    u.verificationStatus === "VERIFIED" 
-                                      ? "bg-emerald-950/30 text-emerald-450 border border-emerald-900/30" 
-                                      : u.verificationStatus === "PENDING_VERIFICATION"
+                                  <span className={`px-2 py-0.5 rounded text-[8px] font-bold uppercase ${u.verificationStatus === "VERIFIED"
+                                    ? "bg-emerald-950/30 text-emerald-450 border border-emerald-900/30"
+                                    : u.verificationStatus === "PENDING_VERIFICATION"
                                       ? "bg-[#d4ff4d]/10 text-[#d4ff4d] border border-[#d4ff4d]/15"
                                       : "bg-zinc-900 text-zinc-400"
-                                  }`}>
+                                    }`}>
                                     {u.verificationStatus}
                                   </span>
                                 </div>
@@ -1172,7 +1150,7 @@ export default function AdminDashboardView() {
                         </div>
                       </div>
 
-                      {/* Owners column */}
+
                       <div className="bg-card-dark border border-contrast-dark rounded-xl p-5 space-y-4">
                         <h3 className="text-sm font-bold text-white border-b border-contrast-dark pb-2 flex items-center justify-between">
                           <span>Property Owners ({usersData.owners.length})</span>
@@ -1182,8 +1160,8 @@ export default function AdminDashboardView() {
                           {usersData.owners
                             .filter(u => u.fullName.toLowerCase().includes(usersSearch.toLowerCase()) || u.email.toLowerCase().includes(usersSearch.toLowerCase()))
                             .map((u) => (
-                              <div 
-                                key={u.id} 
+                              <div
+                                key={u.id}
                                 onClick={() => setSelectedUser(u)}
                                 className="p-3 bg-zinc-950/60 border border-zinc-900 hover:border-[#d4ff4d]/40 hover:bg-zinc-950 transition-all rounded-lg flex items-center justify-between cursor-pointer"
                               >
@@ -1195,13 +1173,12 @@ export default function AdminDashboardView() {
                                   {u.isBanned && (
                                     <span className="bg-red-955 border border-red-900 text-red-400 px-2 py-0.5 rounded text-[8px] font-extrabold uppercase">Banned</span>
                                   )}
-                                  <span className={`px-2 py-0.5 rounded text-[8px] font-bold uppercase ${
-                                    u.verificationStatus === "VERIFIED" 
-                                      ? "bg-emerald-950/30 text-emerald-450 border border-emerald-900/30" 
-                                      : u.verificationStatus === "PENDING_VERIFICATION"
+                                  <span className={`px-2 py-0.5 rounded text-[8px] font-bold uppercase ${u.verificationStatus === "VERIFIED"
+                                    ? "bg-emerald-950/30 text-emerald-450 border border-emerald-900/30"
+                                    : u.verificationStatus === "PENDING_VERIFICATION"
                                       ? "bg-[#d4ff4d]/10 text-[#d4ff4d] border border-[#d4ff4d]/15"
                                       : "bg-zinc-900 text-zinc-400"
-                                  }`}>
+                                    }`}>
                                     {u.verificationStatus}
                                   </span>
                                 </div>
@@ -1216,7 +1193,6 @@ export default function AdminDashboardView() {
             </motion.div>
           </AnimatePresence>
 
-          {/* USER DETAIL MODAL DRAWERS */}
           {selectedUser && (
             <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm text-xs text-white">
               <div className="glass-panel w-full max-w-lg rounded-2xl border border-zinc-900 p-6 bg-zinc-950 shadow-2xl relative max-h-[90vh] overflow-y-auto space-y-6">
@@ -1225,8 +1201,8 @@ export default function AdminDashboardView() {
                     <h2 className="text-sm font-bold text-white">User Administration Card</h2>
                     <p className="text-[10px] text-zinc-500">Managing database state of profile: {selectedUser.fullName}</p>
                   </div>
-                  <button 
-                    onClick={() => setSelectedUser(null)} 
+                  <button
+                    onClick={() => setSelectedUser(null)}
                     className="text-zinc-500 hover:text-white cursor-pointer"
                   >
                     <X className="h-4 w-4" />
@@ -1276,10 +1252,9 @@ export default function AdminDashboardView() {
                   </div>
                 )}
 
-                {/* Moderation Actions / Suspensions */}
                 <div className="bg-red-950/10 border border-red-900/30 p-4 rounded-xl space-y-4">
                   <span className="font-bold text-red-400 block text-[10px] uppercase tracking-wider">Emergency Suspensions Control</span>
-                  
+
                   {selectedUser.isBanned ? (
                     <div className="space-y-3">
                       <div className="p-3 bg-zinc-950/80 border border-red-900/30 rounded-lg text-zinc-350 italic text-[11px]">
@@ -1309,13 +1284,18 @@ export default function AdminDashboardView() {
                           placeholder="Reason for suspension (visible to banned user)..."
                           value={banReasonInput}
                           onChange={(e) => setBanReasonInput(e.target.value)}
-                          className="w-full rounded-lg px-3 py-2.5 glass-input text-white text-xs"
+                          className="w-full rounded-lg px-3 py-2.5 glass-input text-white text-xs border border-zinc-800 focus:border-red-500 outline-none"
+                          required
                         />
+                        {(!banReasonInput || banReasonInput.trim().length < 4) && (
+                          <p className="text-[10px] text-red-500 mt-1">Please enter a reason (min 4 characters).</p>
+                        )}
                       </div>
                       <button
                         onClick={() => handleToggleBan(selectedUser.id, false)}
                         disabled={processingBan === selectedUser.id}
-                        className="w-full rounded-lg bg-red-900 text-white font-bold py-2.5 hover:bg-red-950 transition-colors flex items-center justify-center gap-1.5 cursor-pointer text-xs border border-red-800"
+                        style={{ backgroundColor: "#ef4444", color: "#ffffff" }}
+                        className="w-full rounded-lg font-bold py-2.5 hover:opacity-90 transition-opacity flex items-center justify-center gap-1.5 cursor-pointer text-xs border border-red-600"
                       >
                         {processingBan === selectedUser.id ? (
                           <Loader2 className="h-4 w-4 animate-spin text-white" />

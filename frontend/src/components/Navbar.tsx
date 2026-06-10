@@ -21,6 +21,9 @@ export default function Navbar() {
           setUser(data.user);
         }
       })
+      .catch(() => {
+        setUser(null);
+      })
       .finally(() => setLoading(false));
   }, []);
 

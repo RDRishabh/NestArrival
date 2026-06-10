@@ -7,5 +7,6 @@ export const authApi = {
     api.post("/auth/signup", payload),
   google: (payload: { credential: string; role: string }) => api.post("/auth/google", payload),
   verifyOtp: (payload: { email: string; otp: string }) => api.post("/auth/verify-otp", payload),
+  resendOtp: (payload: { email: string }) => api.post("/auth/resend-otp", payload),
   logout: () => api.post("/auth/logout"),
 };
