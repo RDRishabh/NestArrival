@@ -27,22 +27,8 @@ export default function TrendingHomesSection({ user: propUser, loading: propLoad
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (propUser !== undefined) {
-      setUser(propUser);
-      setLoading(!!propLoading);
-    } else {
-      authApi.me()
-        .then((res) => res.data)
-        .then((data) => {
-          if (data && data.authenticated) {
-            setUser(data.user);
-          }
-        })
-        .catch(() => {
-          setUser(null);
-        })
-        .finally(() => setLoading(false));
-    }
+    setUser(propUser ?? null);
+    setLoading(!!propLoading);
   }, [propUser, propLoading]);
 
   const floorPlanPreviews = [

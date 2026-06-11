@@ -32,7 +32,6 @@ export default function Navbar() {
     if (res.status >= 200 && res.status < 300) {
       setUser(null);
       router.push("/");
-      router.refresh();
     }
   };
 

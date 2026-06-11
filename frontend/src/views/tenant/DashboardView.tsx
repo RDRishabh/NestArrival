@@ -118,7 +118,7 @@ export default function DashboardView() {
       const res = await fetch("/api/subscriptions");
       if (res.ok) {
         const data = await res.json();
-        setBillingHistory(data);
+        setBillingHistory(Array.isArray(data) ? data : (data?.subscriptions ?? []));
       }
     } catch (e) {
       console.error(e);
@@ -155,7 +155,6 @@ export default function DashboardView() {
     });
     if (res.ok) {
       router.push("/");
-      router.refresh();
     }
   };
 
@@ -171,7 +170,7 @@ export default function DashboardView() {
       const res = await fetch(`/api/listings?${query.toString()}`);
       if (res.ok) {
         const data = await res.json();
-        setListings(data);
+        setListings(Array.isArray(data) ? data : (data.listings ?? []));
       }
     } catch (err) {
       console.error(err);
@@ -212,11 +211,12 @@ export default function DashboardView() {
 
   const fetchChatRooms = async () => {
     try {
-      const res = await fetch("/api/chat");
+      const res = await fetch(`/api/chat`);
       if (res.ok) {
         const data = await res.json();
-        setChatRooms(data);
-        return data;
+        const rooms = Array.isArray(data) ? data : (data?.rooms ?? []);
+        setChatRooms(rooms);
+        return rooms;
       }
     } catch (e) {
       console.error(e);
@@ -230,7 +230,7 @@ export default function DashboardView() {
       const res = await fetch(`/api/chat/messages?roomId=${roomId}`);
       if (res.ok) {
         const data = await res.json();
-        setMessages(data);
+        setMessages(Array.isArray(data) ? data : (data?.messages ?? []));
       }
     } catch (e) {
       console.error(e);
@@ -280,12 +280,12 @@ export default function DashboardView() {
     if (!firstMessageContent.trim() || !selectedListing) return;
 
     try {
-      const res = await fetch("/api/chat/messages", {
+      const res = await fetch("/api/chat/initiate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           listingId: selectedListing.id,
-          content: firstMessageContent,
+          firstMessage: firstMessageContent,
         }),
       });
 
@@ -362,7 +362,7 @@ export default function DashboardView() {
     setBillingError("");
 
     try {
-      const res = await fetch("/api/admin/refunds", {
+      const res = await fetch("/api/subscriptions/refund", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -1090,7 +1090,7 @@ export default function DashboardView() {
                       )}
                       
                       {billingError && (
-                        <div className="rounded-lg bg-red-950/20 border border-red-900/60 p-3 text-red-400 text-xs">
+                        <div className="rounded-lg bg-red-50 border border-red-200 p-3 text-red-600 text-xs">
                           <span>{billingError}</span>
                         </div>
                       )}

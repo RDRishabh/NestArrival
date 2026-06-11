@@ -111,8 +111,9 @@ export default function VerificationView() {
 
       setCurrentStep(4);
       setSubmitting(false);
-    } catch (err) {
-      setError("Server connection failed");
+    } catch (err: any) {
+      const msg = err?.response?.data?.error || "Server connection failed";
+      setError(msg);
       setSubmitting(false);
     }
   };
@@ -148,7 +149,7 @@ export default function VerificationView() {
         )}
 
         {error && (
-          <div className="mb-6 rounded-lg bg-red-950/40 border border-red-900/60 p-3 text-xs text-red-400">
+          <div className="mb-6 rounded-lg bg-red-50 border border-red-300 p-3 text-xs text-red-700 font-medium">
             <span>{error}</span>
           </div>
         )}
@@ -204,10 +205,10 @@ export default function VerificationView() {
                       <select
                         value={selectedDocType}
                         onChange={(e) => setSelectedDocType(e.target.value)}
-                        className="w-full text-xs rounded-lg border border-[#eae1d3] p-2.5 bg-white text-[#2c2724] focus:outline-none focus:border-[#cfa052]"
+                        className="w-full text-xs rounded-lg border border-[#eae1d3] p-2.5 bg-white text-[#2c2724] focus:outline-none focus:border-[#cfa052] cursor-pointer"
                       >
                         {currentDocTypes.map((t) => (
-                          <option key={t} value={t} className="bg-white">{t}</option>
+                          <option key={t} value={t} className="bg-white cursor-pointer">{t}</option>
                         ))}
                       </select>
                     </div>
@@ -247,7 +248,7 @@ export default function VerificationView() {
                           </div>
                           <button
                             onClick={() => handleRemoveDoc(idx)}
-                            className="text-red-400 hover:text-red-300 font-bold hover:underline"
+                            className="text-red-400 hover:text-red-300 font-bold hover:underline cursor-pointer"
                           >
                             Remove
                           </button>
@@ -301,7 +302,7 @@ export default function VerificationView() {
                   </p>
                   <button
                     onClick={() => router.push("/owner/dashboard")}
-                    className="inline-flex rounded-lg bg-[#cfa052] hover:bg-[#b58942] text-white font-bold shadow-[0_4px_10px_rgba(207,160,82,0.3)] px-6 py-3 text-xs"
+                    className="inline-flex rounded-lg bg-[#cfa052] hover:bg-[#b58942] text-white font-bold shadow-[0_4px_10px_rgba(207,160,82,0.3)] px-6 py-3 text-xs cursor-pointer"
                   >
                     Go to Dashboard
                   </button>
@@ -316,7 +317,7 @@ export default function VerificationView() {
               <button
                 onClick={() => currentStep > 1 && setCurrentStep(currentStep - 1)}
                 disabled={currentStep === 1}
-                className="inline-flex items-center space-x-1 border border-[#eae1d3] bg-white px-4 py-2 rounded-lg text-xs font-bold text-[#5c544d] hover:text-[#2c2724] disabled:opacity-40"
+                className="inline-flex items-center space-x-1 border border-[#eae1d3] bg-white px-4 py-2 rounded-lg text-xs font-bold text-[#5c544d] hover:text-[#2c2724] disabled:opacity-40 cursor-pointer disabled:cursor-default"
               >
                 <ArrowLeft className="h-3.5 w-3.5" />
                 <span>Back</span>
@@ -332,7 +333,7 @@ export default function VerificationView() {
                     setError("");
                     setCurrentStep(currentStep + 1);
                   }}
-                  className="inline-flex items-center space-x-1 bg-[#cfa052] hover:bg-[#b58942] text-white transition-all px-5 py-2 rounded-lg text-xs font-bold shadow-[0_4px_10px_rgba(207,160,82,0.3)]"
+                  className="inline-flex items-center space-x-1 bg-[#cfa052] hover:bg-[#b58942] text-white transition-all px-5 py-2 rounded-lg text-xs font-bold shadow-[0_4px_10px_rgba(207,160,82,0.3)] cursor-pointer"
                 >
                   <span>Continue</span>
                   <ArrowRight className="h-3.5 w-3.5" />
@@ -341,7 +342,7 @@ export default function VerificationView() {
                 <button
                   onClick={handleSubmitVerification}
                   disabled={!declarationAccepted || submitting}
-                  className="inline-flex items-center space-x-1.5 bg-[#cfa052] hover:bg-[#b58942] text-white transition-all px-5 py-2.5 rounded-lg text-xs font-bold disabled:bg-[#eae1d3] disabled:text-[#8a7d6a]"
+                  className="inline-flex items-center space-x-1.5 bg-[#cfa052] hover:bg-[#b58942] text-white transition-all px-5 py-2.5 rounded-lg text-xs font-bold disabled:bg-[#eae1d3] disabled:text-[#8a7d6a] cursor-pointer disabled:cursor-default"
                 >
                   {submitting ? (
                     <>

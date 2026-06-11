@@ -25,7 +25,11 @@ exports.getAnalytics = async (req, res) => {
     });
     const totalRevenue = revenueData._sum.price || 0;
 
-    res.json({ totalTenants, totalOwners, totalListings, totalRevenue });
+    const totalVerificationsPending = await prisma.verificationRequest.count({
+      where: { user: { verificationStatus: "PENDING_VERIFICATION" } },
+    });
+
+    res.json({ totalTenants, totalOwners, totalListings, totalRevenue, totalVerificationsPending });
   } catch (err) {
     return sendServerError(res, err, "Failed to fetch analytics");
   }
@@ -94,6 +98,31 @@ exports.processVerification = async (req, res) => {
       "Verification processing error: " + err.message,
       "Failed to process verification",
     );
+  }
+};
+
+exports.getListings = async (req, res) => {
+  try {
+    const page = Math.max(Number(req.query.page) || 1, 1);
+    const limit = Math.min(Math.max(Number(req.query.limit) || 50, 1), 100);
+    const skip = (page - 1) * limit;
+
+    const [total, listings] = await Promise.all([
+      prisma.listing.count({ where: { status: { not: "ARCHIVED" } } }),
+      prisma.listing.findMany({
+        where: { status: { not: "ARCHIVED" } },
+        include: {
+          owner: { select: { id: true, fullName: true, email: true } },
+        },
+        orderBy: { createdAt: "desc" },
+        skip,
+        take: limit,
+      }),
+    ]);
+
+    res.json({ total, page, limit, listings });
+  } catch (err) {
+    return sendServerError(res, err, "Failed to fetch listings");
   }
 };
 
@@ -235,9 +264,17 @@ exports.getUsers = async (req, res) => {
         select: {
           id: true,
           fullName: true,
+          email: true,
           role: true,
           isVerified: true,
           isBanned: true,
+          banReason: true,
+          verificationStatus: true,
+          currentCountry: true,
+          plannedMoveDate: true,
+          visaStatus: true,
+          visaType: true,
+          expectedRentalDuration: true,
           createdAt: true,
         },
         orderBy: { createdAt: "desc" },
