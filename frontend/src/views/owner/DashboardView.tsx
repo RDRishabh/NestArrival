@@ -6,13 +6,15 @@ import Link from "next/link";
 import { io } from "socket.io-client";
 import {
   Home, MessageSquare, ShieldCheck, MapPin, Bed, Bath,
-  Calendar, ArrowRight, UserCheck, AlertTriangle, Send, Loader2,
-  PlusCircle, Edit3, Eye, CheckCircle, Clock, Trash2, X, Sparkles, LogOut, Menu, Ban
+  Calendar, ArrowRight, ArrowLeft, UserCheck, AlertTriangle, Send, Loader2,
+  PlusCircle, Edit3, Eye, CheckCircle, Clock, Trash2, X, Sparkles, LogOut, Menu, Ban, Upload, Image as ImageIcon
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { authApi } from "@/apis/Authentication/auth";
 import { listingsApi } from "@/apis/Listings/listings";
 import { chatApi } from "@/apis/Chats/chat";
+import { verificationApi } from "@/apis/Verification/verification";
+import Logo from "@/components/Logo";
 
 const socketServerUrl = process.env.NEXT_PUBLIC_BACKEND_ORIGIN || "http://localhost:5000";
 
@@ -28,7 +30,7 @@ export default function DashboardView() {
   // Listings states
   const [listings, setListings] = useState<any[]>([]);
   const [loadingListings, setLoadingListings] = useState(false);
-  const [showAddModal, setShowAddModal] = useState(false);
+  const [isCreatingListing, setIsCreatingListing] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingListing, setEditingListing] = useState<any>(null);
 
@@ -43,6 +45,8 @@ export default function DashboardView() {
   const [availabilityDate, setAvailabilityDate] = useState("");
   const [formError, setFormError] = useState("");
   const [submittingForm, setSubmittingForm] = useState(false);
+  const [photos, setPhotos] = useState<string[]>([]);
+  const [uploadingFile, setUploadingFile] = useState(false);
 
   // Chat/Connection states
   const [chatRooms, setChatRooms] = useState<any[]>([]);
@@ -55,7 +59,27 @@ export default function DashboardView() {
   const socketRef = useRef<any>(null);
 
   useEffect(() => {
+    const cached = localStorage.getItem("nestarrival_user");
+    if (cached) {
+      try {
+        const userObj = JSON.parse(cached);
+        if (userObj.role === "OWNER") {
+          setCurrentUser(userObj);
+          setLoadingUser(false);
+        }
+      } catch (err) {
+        console.error("Failed to parse cached user", err);
+      }
+    }
+
     fetchSession();
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("create") === "true") {
+        setIsCreatingListing(true);
+        router.replace("/owner/dashboard");
+      }
+    }
   }, []);
 
   // WebSocket lifecycle connection effect
@@ -88,7 +112,7 @@ export default function DashboardView() {
       fetchListings();
       fetchChatRooms();
     }
-  }, [currentUser]);
+  }, [currentUser?.id]);
 
   useEffect(() => {
     if (activeRoom) {
@@ -106,11 +130,14 @@ export default function DashboardView() {
     try {
       const { data } = await authApi.me();
       if (!data || !data.authenticated || data.user.role !== "OWNER") {
+        localStorage.removeItem("nestarrival_user");
         router.push("/login");
       } else {
         setCurrentUser(data.user);
+        localStorage.setItem("nestarrival_user", JSON.stringify(data.user));
       }
     } catch (e) {
+      localStorage.removeItem("nestarrival_user");
       router.push("/login");
     } finally {
       setLoadingUser(false);
@@ -118,6 +145,7 @@ export default function DashboardView() {
   };
 
   const handleLogout = async () => {
+    localStorage.removeItem("nestarrival_user");
     const res = await authApi.logout();
     if (res.status >= 200 && res.status < 300) {
       router.push("/");
@@ -198,6 +226,12 @@ export default function DashboardView() {
       return;
     }
 
+    if (photos.length === 0) {
+      setFormError("At least one property image is required.");
+      setSubmittingForm(false);
+      return;
+    }
+
     try {
       const { data } = await listingsApi.create({
         title,
@@ -207,7 +241,8 @@ export default function DashboardView() {
         city,
         bedrooms: parseInt(bedrooms),
         bathrooms: parseInt(bathrooms),
-        availabilityDate,
+        availabilityDate: new Date(availabilityDate).toISOString(),
+        photos,
       });
 
       if (!data) {
@@ -222,13 +257,28 @@ export default function DashboardView() {
       setLocation("");
       setCity("");
       setAvailabilityDate("");
-      setShowAddModal(false);
+      setPhotos([]);
+      setIsCreatingListing(false);
       fetchListings();
       setSubmittingForm(false);
     } catch (err) {
       setFormError("Server error");
       setSubmittingForm(false);
     }
+  };
+
+  const handleCreateClick = () => {
+    setTitle("");
+    setDescription("");
+    setRent("");
+    setLocation("");
+    setCity("");
+    setBedrooms("1");
+    setBathrooms("1");
+    setAvailabilityDate("");
+    setPhotos([]);
+    setFormError("");
+    setIsCreatingListing(true);
   };
 
   const handleEditClick = (listing: any) => {
@@ -241,13 +291,66 @@ export default function DashboardView() {
     setBedrooms(listing.bedrooms.toString());
     setBathrooms(listing.bathrooms.toString());
     setAvailabilityDate(new Date(listing.availabilityDate).toISOString().split("T")[0]);
+    setPhotos(listing.photos || []);
     setShowEditModal(true);
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || e.target.files.length === 0) return;
+    const files = Array.from(e.target.files);
+    
+    // Check total count (current photos + newly selected files)
+    if (photos.length + files.length > 10) {
+      setFormError("You can upload a maximum of 10 photos.");
+      return;
+    }
+
+    // Check size limit: each under 2 MB (2 * 1024 * 1024 bytes)
+    const limit = 2 * 1024 * 1024;
+    const oversized = files.some((file) => file.size > limit);
+    if (oversized) {
+      setFormError("Each image must be under 2 MB.");
+      return;
+    }
+
+    setUploadingFile(true);
+    setFormError("");
+
+    const uploadedUrls: string[] = [];
+    try {
+      for (const file of files) {
+        const formData = new FormData();
+        formData.append("file", file);
+        const { data } = await verificationApi.upload(formData);
+
+        if (!data || !data.url) {
+          throw new Error("Upload response missing URL");
+        }
+        uploadedUrls.push(data.url);
+      }
+
+      setPhotos((prev) => [...prev, ...uploadedUrls]);
+    } catch (err) {
+      setFormError("Server connection failed during image upload.");
+    } finally {
+      setUploadingFile(false);
+    }
+  };
+
+  const handleRemovePhoto = (index: number) => {
+    setPhotos((prev) => prev.filter((_, i) => i !== index));
   };
 
   const handleUpdateListing = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormError("");
     setSubmittingForm(true);
+
+    if (photos.length === 0) {
+      setFormError("At least one property image is required.");
+      setSubmittingForm(false);
+      return;
+    }
 
     try {
       const { data } = await listingsApi.update(editingListing.id, {
@@ -259,6 +362,7 @@ export default function DashboardView() {
         bedrooms: parseInt(bedrooms),
         bathrooms: parseInt(bathrooms),
         availabilityDate,
+        photos,
       });
 
       if (!data) {
@@ -347,7 +451,7 @@ export default function DashboardView() {
         <div className="space-y-8">
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-2 group">
-            <ShieldCheck className="h-6 w-6 text-[#d4ff4d] transition-transform duration-300 group-hover:scale-110" />
+            <Logo className="h-6 w-6 text-[#d4ff4d] transition-transform duration-300 group-hover:scale-110" />
             <span className="text-lg font-bold tracking-tight text-white">
               Nest<span className="text-[#d4ff4d]">Arrival</span>
             </span>
@@ -423,7 +527,7 @@ export default function DashboardView() {
       {/* 2. Mobile Header Bar */}
       <header className="md:hidden flex items-center justify-between w-full h-16 fixed top-0 left-0 bg-sidebar-dark border-b border-contrast-dark z-30 px-4">
         <Link href="/" className="flex items-center space-x-2">
-          <ShieldCheck className="h-5 w-5 text-[#d4ff4d]" />
+          <Logo className="h-5 w-5 text-[#d4ff4d]" />
           <span className="text-base font-bold tracking-tight text-white">
             Nest<span className="text-[#d4ff4d]">Arrival</span>
           </span>
@@ -555,86 +659,298 @@ export default function DashboardView() {
               {/* TAB 1: My Property Listings */}
               {activeTab === "listings" && (
                 <div className="space-y-6">
-                  <div className="flex justify-between items-center">
-                    <h2 className="text-base font-bold text-white">Manage Properties</h2>
-                    {isVerified && (
-                      <button
-                        onClick={() => setShowAddModal(true)}
-                        className="rounded-lg bg-[#d4ff4d] px-4 py-2.5 text-xs font-bold text-black hover:bg-[#e2ff80] transition-all flex items-center space-x-1.5 cursor-pointer shadow-[0_0_10px_rgba(212,255,77,0.15)]"
-                      >
-                        <PlusCircle className="h-4 w-4" />
-                        <span>Add Property Listing</span>
-                      </button>
-                    )}
-                  </div>
+                  {isCreatingListing ? (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="glass-panel border border-contrast-dark p-8 rounded-2xl bg-card-dark max-w-2xl mx-auto shadow-2xl space-y-6 text-xs"
+                    >
+                      <div className="flex items-center justify-between border-b border-contrast-dark pb-4">
+                        <div>
+                          <h2 className="text-lg font-bold text-white tracking-tight">List Your Property</h2>
+                          <p className="text-xs text-zinc-400 mt-1">Provide comprehensive details and photos to help newcomers secure housing.</p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setIsCreatingListing(false)}
+                          className="rounded-lg border border-zinc-800 px-3 py-1.5 font-bold text-zinc-400 hover:text-white hover:border-zinc-500 transition-colors flex items-center gap-1.5 cursor-pointer text-xs"
+                        >
+                          <ArrowLeft className="h-3.5 w-3.5" />
+                          <span>Back to Properties</span>
+                        </button>
+                      </div>
 
-                  {loadingListings ? (
-                    <div className="flex justify-center py-12">
-                      <Loader2 className="h-8 w-8 animate-spin text-[#d4ff4d]" />
-                    </div>
-                  ) : listings.length === 0 ? (
-                    <div className="text-center py-16 bg-card-dark rounded-xl border border-contrast-dark text-xs text-zinc-500 italic">
-                      You haven't added any listings yet.
-                    </div>
-                  ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                      {listings.map((item) => (
-                        <div key={item.id} className="bg-card-dark border border-contrast-dark hover:border-[#d4ff4d]/30 hover:shadow-[0_0_15px_rgba(212,255,77,0.05)] transition-all flex flex-col justify-between overflow-hidden text-xs rounded-xl">
-                          {/* Header Image */}
-                          <div className="h-40 bg-zinc-950 flex items-center justify-center relative text-zinc-550 border-b border-contrast-dark">
-                            <div className="flex flex-col items-center italic">
-                              <Home className="h-6 w-6 mb-1 text-zinc-700" />
-                              <span>Property Photo Placeholder</span>
-                            </div>
+                      {formError && (
+                        <div className="rounded-lg bg-red-955/35 border border-red-900/60 p-3 text-xs text-red-400 font-medium">
+                          <span>{formError}</span>
+                        </div>
+                      )}
 
-                            {/* Moderation status badge */}
-                            <span className={`absolute top-3 right-3 rounded-lg px-2 py-0.5 text-[9px] font-bold shadow ${item.status === "APPROVED"
-                                ? "bg-emerald-950/40 border border-emerald-850 text-emerald-450"
-                                : item.status === "PENDING_REVIEW"
-                                  ? "bg-[#d4ff4d]/10 border border-[#d4ff4d]/20 text-[#d4ff4d]"
-                                  : item.status === "REJECTED"
-                                    ? "bg-red-955 border border-red-900 text-red-400"
-                                    : "bg-zinc-900 border border-zinc-800 text-zinc-400"
-                              }`}>
-                              {item.status}
-                            </span>
+                      <form onSubmit={handleCreateListing} className="space-y-5 text-xs text-zinc-350">
+                        <div>
+                          <label className="block text-zinc-350 font-bold mb-1.5 uppercase tracking-wider text-[10px]">Property Title *</label>
+                          <input
+                            type="text"
+                            required
+                            value={title}
+                            onChange={(e) => setTitle(e.target.value)}
+                            placeholder="e.g. Elegant 2-Bedroom Suite in Downtown Vancouver"
+                            className="w-full rounded-lg px-3.5 py-3 glass-input text-white focus:outline-none focus:border-[#d4ff4d] border border-contrast-dark bg-zinc-950/40"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-zinc-350 font-bold mb-1.5 uppercase tracking-wider text-[10px]">Property Description *</label>
+                          <textarea
+                            required
+                            rows={4}
+                            value={description}
+                            onChange={(e) => setDescription(e.target.value)}
+                            placeholder="Describe your property (utilities, transit, rules, ideal tenant)..."
+                            className="w-full rounded-lg px-3.5 py-3 glass-input text-white focus:outline-none focus:border-[#d4ff4d] border border-contrast-dark resize-none bg-zinc-950/40"
+                          />
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-zinc-350 font-bold mb-1.5 uppercase tracking-wider text-[10px]">Monthly Rent (CAD) *</label>
+                            <input
+                              type="number"
+                              required
+                              value={rent}
+                              onChange={(e) => setRent(e.target.value)}
+                              placeholder="e.g. 2100"
+                              className="w-full rounded-lg px-3.5 py-3 glass-input text-white focus:outline-none focus:border-[#d4ff4d] border border-contrast-dark bg-zinc-950/40"
+                            />
                           </div>
-
-                          <div className="p-4 space-y-2 flex-grow flex flex-col justify-between">
-                            <div className="space-y-2">
-                              <div className="flex justify-between items-center text-[10px] text-zinc-500 font-bold uppercase">
-                                <span>{item.city}</span>
-                                <span className="font-bold text-white font-mono">CAD ${item.rent}/mo</span>
-                              </div>
-                              <h3 className="font-bold text-white line-clamp-1">{item.title}</h3>
-                              <p className="text-zinc-400 line-clamp-2 leading-relaxed">{item.description}</p>
-
-                              {item.adminFeedback && (
-                                <div className="mt-2 p-2 rounded-lg bg-red-950/10 border border-red-900/40 text-[10px] text-red-400 italic leading-relaxed">
-                                  <strong>Admin Feedback:</strong> {item.adminFeedback}
-                                </div>
-                              )}
-                            </div>
-
-                            <div className="px-4 pb-4 border-t border-contrast-dark pt-3 flex items-center justify-between gap-2">
-                              <button
-                                onClick={() => handleEditClick(item)}
-                                className="flex-grow rounded-lg border border-zinc-800 py-1.5 text-center font-bold text-zinc-400 hover:text-white hover:border-zinc-500 transition-colors flex items-center justify-center gap-1 cursor-pointer"
-                              >
-                                <Edit3 className="h-3.5 w-3.5" />
-                                <span>Edit</span>
-                              </button>
-                              <button
-                                onClick={() => handleArchiveListing(item.id)}
-                                className="rounded-lg border border-red-900 bg-red-950/10 p-1.5 text-red-400 hover:bg-red-950/20 transition-colors cursor-pointer"
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </button>
-                            </div>
+                          <div>
+                            <label className="block text-zinc-350 font-bold mb-1.5 uppercase tracking-wider text-[10px]">Availability Date *</label>
+                            <input
+                              type="date"
+                              required
+                              value={availabilityDate}
+                              onChange={(e) => setAvailabilityDate(e.target.value)}
+                              className="w-full rounded-lg px-3.5 py-3 glass-input text-white focus:outline-none focus:border-[#d4ff4d] border border-contrast-dark bg-zinc-950/40"
+                            />
                           </div>
                         </div>
-                      ))}
-                    </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-zinc-350 font-bold mb-1.5 uppercase tracking-wider text-[10px]">Location Address *</label>
+                            <input
+                              type="text"
+                              required
+                              value={location}
+                              onChange={(e) => setLocation(e.target.value)}
+                              placeholder="e.g. 456 Robson St"
+                              className="w-full rounded-lg px-3.5 py-3 glass-input text-white focus:outline-none focus:border-[#d4ff4d] border border-contrast-dark bg-zinc-950/40"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-zinc-350 font-bold mb-1.5 uppercase tracking-wider text-[10px]">City *</label>
+                            <input
+                              type="text"
+                              required
+                              value={city}
+                              onChange={(e) => setCity(e.target.value)}
+                              placeholder="e.g. Vancouver"
+                              className="w-full rounded-lg px-3.5 py-3 glass-input text-white focus:outline-none focus:border-[#d4ff4d] border border-contrast-dark bg-zinc-950/40"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-zinc-350 font-bold mb-1.5 uppercase tracking-wider text-[10px]">Bedrooms *</label>
+                            <select
+                              value={bedrooms}
+                              onChange={(e) => setBedrooms(e.target.value)}
+                              className="w-full rounded-lg border border-contrast-dark p-3 bg-zinc-950 text-white focus:outline-none focus:border-[#d4ff4d]"
+                            >
+                              <option value="1" className="bg-zinc-950">1 Bed</option>
+                              <option value="2" className="bg-zinc-950">2 Beds</option>
+                              <option value="3" className="bg-zinc-950">3 Beds</option>
+                              <option value="4" className="bg-zinc-950">4+ Beds</option>
+                            </select>
+                          </div>
+                          <div>
+                            <label className="block text-zinc-350 font-bold mb-1.5 uppercase tracking-wider text-[10px]">Bathrooms *</label>
+                            <select
+                              value={bathrooms}
+                              onChange={(e) => setBathrooms(e.target.value)}
+                              className="w-full rounded-lg border border-contrast-dark p-3 bg-zinc-950 text-white focus:outline-none focus:border-[#d4ff4d]"
+                            >
+                              <option value="1" className="bg-zinc-950">1 Bath</option>
+                              <option value="2" className="bg-zinc-950">2 Baths</option>
+                              <option value="3" className="bg-zinc-950">3+ Baths</option>
+                            </select>
+                          </div>
+                        </div>
+
+                        {/* Photos Section */}
+                        <div className="space-y-3 pt-2">
+                          <label className="block text-zinc-350 font-bold mb-1.5 uppercase tracking-wider text-[10px]">Property Photos *</label>
+                          
+                          <div className="flex items-center justify-center w-full">
+                            <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-zinc-800 border-dashed rounded-xl cursor-pointer bg-zinc-950 hover:bg-zinc-900/40 transition-all">
+                              <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                                {uploadingFile ? (
+                                  <Loader2 className="h-6 w-6 animate-spin text-[#d4ff4d]" />
+                                ) : (
+                                  <>
+                                    <Upload className="w-6 h-6 text-zinc-555 mb-1.5" />
+                                    <p className="mb-0.5 text-[11px] text-zinc-300 font-bold">Upload property images</p>
+                                    <p className="text-[10px] text-zinc-500 font-medium">Up to 10 photos, max 2MB each</p>
+                                  </>
+                                )}
+                              </div>
+                              <input
+                                type="file"
+                                multiple
+                                disabled={uploadingFile}
+                                onChange={handleImageUpload}
+                                className="hidden"
+                                accept="image/*"
+                              />
+                            </label>
+                          </div>
+
+                          {/* Uploaded Photos Grid */}
+                          {photos.length > 0 && (
+                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
+                              {photos.map((url, idx) => (
+                                <div key={idx} className="relative group rounded-lg overflow-hidden border border-contrast-dark h-20 bg-zinc-950">
+                                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                                  <img
+                                    src={url}
+                                    alt={`Upload ${idx + 1}`}
+                                    className="w-full h-full object-cover opacity-85 group-hover:opacity-60 transition-opacity"
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={() => handleRemovePhoto(idx)}
+                                    className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-white hover:text-red-400 font-bold bg-black/40"
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="flex justify-end gap-3 border-t border-contrast-dark pt-5 mt-6">
+                          <button
+                            type="button"
+                            onClick={() => setIsCreatingListing(false)}
+                            className="rounded-lg border border-zinc-800 px-5 py-2.5 font-bold text-zinc-450 hover:bg-zinc-900 cursor-pointer text-zinc-400 hover:text-white text-xs"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            type="submit"
+                            disabled={submittingForm || uploadingFile}
+                            className="rounded-lg neon-btn-primary px-6 py-2.5 font-bold text-black cursor-pointer text-xs"
+                          >
+                            {submittingForm ? "Submitting..." : "Submit Property"}
+                          </button>
+                        </div>
+                      </form>
+                    </motion.div>
+                  ) : (
+                    <>
+                      <div className="flex justify-between items-center">
+                        <h2 className="text-base font-bold text-white">Manage Properties</h2>
+                        {isVerified && (
+                          <button
+                            onClick={handleCreateClick}
+                            className="rounded-lg bg-[#d4ff4d] px-4 py-2.5 text-xs font-bold text-black hover:bg-[#e2ff80] transition-all flex items-center space-x-1.5 cursor-pointer shadow-[0_0_10px_rgba(212,255,77,0.15)]"
+                          >
+                            <PlusCircle className="h-4 w-4" />
+                            <span>Add Property Listing</span>
+                          </button>
+                        )}
+                      </div>
+
+                      {loadingListings ? (
+                        <div className="flex justify-center py-12">
+                          <Loader2 className="h-8 w-8 animate-spin text-[#d4ff4d]" />
+                        </div>
+                      ) : listings.length === 0 ? (
+                        <div className="text-center py-16 bg-card-dark rounded-xl border border-contrast-dark text-xs text-zinc-500 italic">
+                          You haven't added any listings yet.
+                        </div>
+                      ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                          {listings.map((item) => (
+                            <div key={item.id} className="bg-card-dark border border-contrast-dark hover:border-[#d4ff4d]/30 hover:shadow-[0_0_15px_rgba(212,255,77,0.05)] transition-all flex flex-col justify-between overflow-hidden text-xs rounded-xl">
+                              {/* Header Image */}
+                              <div className="h-40 bg-zinc-950 flex items-center justify-center relative text-zinc-550 border-b border-contrast-dark overflow-hidden">
+                                {item.photos && item.photos.length > 0 ? (
+                                  // eslint-disable-next-line @next/next/no-img-element
+                                  <img
+                                    src={item.photos[0]}
+                                    alt={item.title}
+                                    className="w-full h-full object-cover"
+                                  />
+                                ) : (
+                                  <div className="flex flex-col items-center italic">
+                                    <Home className="h-6 w-6 mb-1 text-zinc-700" />
+                                    <span>No Photo Provided</span>
+                                  </div>
+                                )}
+
+                                {/* Moderation status badge */}
+                                <span className={`absolute top-3 right-3 rounded-lg px-2 py-0.5 text-[9px] font-bold shadow ${item.status === "APPROVED"
+                                    ? "bg-emerald-950/40 border border-emerald-850 text-emerald-450"
+                                    : item.status === "PENDING_REVIEW"
+                                      ? "bg-[#d4ff4d]/10 border border-[#d4ff4d]/20 text-[#d4ff4d]"
+                                      : item.status === "REJECTED"
+                                        ? "bg-red-955 border border-red-900 text-red-400"
+                                        : "bg-zinc-900 border border-zinc-800 text-zinc-400"
+                                  }`}>
+                                  {item.status}
+                                </span>
+                              </div>
+
+                              <div className="p-4 space-y-2 flex-grow flex flex-col justify-between">
+                                <div className="space-y-2">
+                                  <div className="flex justify-between items-center text-[10px] text-zinc-500 font-bold uppercase">
+                                    <span>{item.city}</span>
+                                    <span className="font-bold text-white font-mono">CAD ${item.rent}/mo</span>
+                                  </div>
+                                  <h3 className="font-bold text-white line-clamp-1">{item.title}</h3>
+                                  <p className="text-zinc-400 line-clamp-2 leading-relaxed">{item.description}</p>
+
+                                  {item.adminFeedback && (
+                                    <div className="mt-2 p-2 rounded-lg bg-red-955/10 border border-red-900/40 text-[10px] text-red-400 italic leading-relaxed">
+                                      <strong>Admin Feedback:</strong> {item.adminFeedback}
+                                    </div>
+                                  )}
+                                </div>
+
+                                <div className="px-4 pb-4 border-t border-contrast-dark pt-3 flex items-center justify-between gap-2">
+                                  <button
+                                    onClick={() => handleEditClick(item)}
+                                    className="flex-grow rounded-lg border border-zinc-800 py-1.5 text-center font-bold text-zinc-400 hover:text-white hover:border-zinc-500 transition-colors flex items-center justify-center gap-1 cursor-pointer"
+                                  >
+                                    <Edit3 className="h-3.5 w-3.5" />
+                                    <span>Edit</span>
+                                  </button>
+                                  <button
+                                    onClick={() => handleArchiveListing(item.id)}
+                                    className="rounded-lg border border-red-900 bg-red-955/10 p-1.5 text-red-400 hover:bg-red-955/20 transition-colors cursor-pointer"
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </>
                   )}
                 </div>
               )}
@@ -810,143 +1126,7 @@ export default function DashboardView() {
 
         </main>
 
-        {/* CREATE LISTING MODAL */}
-        {showAddModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm text-xs text-white">
-            <div className="glass-panel w-full max-w-md rounded-2xl border border-zinc-900 p-6 bg-zinc-950 shadow-2xl relative max-h-[90vh] overflow-y-auto">
-              <div className="flex items-center justify-between mb-4 border-b border-zinc-900 pb-2">
-                <h2 className="text-sm font-bold text-white">Add Property Listing</h2>
-                <button onClick={() => setShowAddModal(false)} className="text-zinc-500 hover:text-white cursor-pointer"><X className="h-4 w-4" /></button>
-              </div>
 
-              {formError && (
-                <div className="mb-4 rounded-lg bg-red-950/20 border border-red-900 p-2.5 text-red-400">
-                  <span>{formError}</span>
-                </div>
-              )}
-
-              <form onSubmit={handleCreateListing} className="space-y-4">
-                <div>
-                  <label className="block text-zinc-400 font-bold mb-1.5">Property Title</label>
-                  <input
-                    type="text"
-                    required
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                    placeholder="e.g. Spacious 2-Bedroom Condo Near Subway"
-                    className="w-full rounded-lg px-3 py-2.5 glass-input text-white text-xs"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-zinc-400 font-bold mb-1.5">Property Description</label>
-                  <textarea
-                    required
-                    rows={3}
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    placeholder="Provide details about utilities, amenities, parking, lease length..."
-                    className="w-full rounded-lg px-3 py-2.5 glass-input text-white text-xs resize-none"
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-zinc-400 font-bold mb-1.5">Monthly Rent (CAD)</label>
-                    <input
-                      type="number"
-                      required
-                      value={rent}
-                      onChange={(e) => setRent(e.target.value)}
-                      placeholder="e.g. 1800"
-                      className="w-full rounded-lg px-3 py-2.5 glass-input text-white text-xs"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-zinc-400 font-bold mb-1.5">Availability Date</label>
-                    <input
-                      type="date"
-                      required
-                      value={availabilityDate}
-                      onChange={(e) => setAvailabilityDate(e.target.value)}
-                      className="w-full rounded-lg px-3 py-2.5 glass-input text-white text-xs"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-zinc-400 font-bold mb-1.5">Location Address</label>
-                    <input
-                      type="text"
-                      required
-                      value={location}
-                      onChange={(e) => setLocation(e.target.value)}
-                      placeholder="e.g. 123 Yonge St"
-                      className="w-full rounded-lg px-3 py-2.5 glass-input text-white text-xs"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-zinc-400 font-bold mb-1.5">City</label>
-                    <input
-                      type="text"
-                      required
-                      value={city}
-                      onChange={(e) => setCity(e.target.value)}
-                      placeholder="e.g. Toronto"
-                      className="w-full rounded-lg px-3 py-2.5 glass-input text-white text-xs"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-zinc-400 font-bold mb-1.5">Bedrooms</label>
-                    <select
-                      value={bedrooms}
-                      onChange={(e) => setBedrooms(e.target.value)}
-                      className="w-full rounded-lg border border-zinc-900 p-2.5 bg-zinc-950 text-white focus:outline-none focus:border-[#d4ff4d]"
-                    >
-                      <option value="1" className="bg-zinc-950">1 Bed</option>
-                      <option value="2" className="bg-zinc-950">2 Beds</option>
-                      <option value="3" className="bg-zinc-950">3 Beds</option>
-                      <option value="4" className="bg-zinc-950">4+ Beds</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-zinc-400 font-bold mb-1.5">Bathrooms</label>
-                    <select
-                      value={bathrooms}
-                      onChange={(e) => setBathrooms(e.target.value)}
-                      className="w-full rounded-lg border border-zinc-900 p-2.5 bg-zinc-950 text-white focus:outline-none focus:border-[#d4ff4d]"
-                    >
-                      <option value="1" className="bg-zinc-950">1 Bath</option>
-                      <option value="2" className="bg-zinc-950">2 Baths</option>
-                      <option value="3" className="bg-zinc-950">3+ Baths</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div className="flex justify-end gap-2 border-t border-zinc-900 pt-4">
-                  <button
-                    type="button"
-                    onClick={() => setShowAddModal(false)}
-                    className="rounded-lg border border-zinc-800 px-4 py-2 font-bold text-zinc-450 hover:bg-zinc-900 cursor-pointer text-zinc-400 hover:text-white"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={submittingForm}
-                    className="rounded-lg neon-btn-primary px-5 py-2 font-bold text-black cursor-pointer"
-                  >
-                    {submittingForm ? "Submitting..." : "Submit Listing"}
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        )}
 
         {/* EDIT LISTING MODAL */}
         {showEditModal && editingListing && (
@@ -1058,6 +1238,58 @@ export default function DashboardView() {
                       <option value="3" className="bg-zinc-950">3+ Baths</option>
                     </select>
                   </div>
+                </div>
+
+                {/* Photos Section */}
+                <div className="space-y-3 pt-2">
+                  <label className="block text-zinc-400 font-bold mb-1.5">Property Photos *</label>
+                  
+                  <div className="flex items-center justify-center w-full">
+                    <label className="flex flex-col items-center justify-center w-full h-24 border-2 border-zinc-800 border-dashed rounded-xl cursor-pointer bg-zinc-950 hover:bg-zinc-900/40 transition-all">
+                      <div className="flex flex-col items-center justify-center pt-3 pb-3">
+                        {uploadingFile ? (
+                          <Loader2 className="h-5 w-5 animate-spin text-[#d4ff4d]" />
+                        ) : (
+                          <>
+                            <Upload className="w-5 h-5 text-zinc-500 mb-1" />
+                            <p className="mb-0.5 text-[10px] text-zinc-400 font-bold">Upload property images</p>
+                            <p className="text-[9px] text-zinc-500">Up to 10 photos, max 2MB each</p>
+                          </>
+                        )}
+                      </div>
+                      <input
+                        type="file"
+                        multiple
+                        disabled={uploadingFile}
+                        onChange={handleImageUpload}
+                        className="hidden"
+                        accept="image/*"
+                      />
+                    </label>
+                  </div>
+
+                  {/* Uploaded Photos Grid */}
+                  {photos.length > 0 && (
+                    <div className="grid grid-cols-4 gap-2 pt-1">
+                      {photos.map((url, idx) => (
+                        <div key={idx} className="relative group rounded-lg overflow-hidden border border-zinc-800 h-14 bg-zinc-950">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={url}
+                            alt={`Upload ${idx + 1}`}
+                            className="w-full h-full object-cover opacity-80 group-hover:opacity-60 transition-opacity"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => handleRemovePhoto(idx)}
+                            className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-white hover:text-red-400 font-bold bg-black/40"
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
 
                 <div className="flex justify-end gap-2 border-t border-zinc-900 pt-4">

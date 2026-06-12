@@ -14,15 +14,19 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { authApi } from "@/apis/Authentication/auth";
 import { adminApi } from "@/apis/Admin/admin";
+import Logo from "@/components/Logo";
 
 export default function AdminDashboardView() {
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [loadingUser, setLoadingUser] = useState(true);
-  const [activeTab, setActiveTab] = useState<"analytics" | "verifications" | "listings" | "refunds" | "cms" | "users">("analytics");
+  const [activeTab, setActiveTab] = useState<"analytics" | "verifications" | "listings" | "refunds" | "cms" | "users" | "subscriptions">("analytics");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [verificationsShowHistory, setVerificationsShowHistory] = useState(false);
+  const [subscriptionsQueue, setSubscriptionsQueue] = useState<any[]>([]);
+  const [loadingSubscriptionsQueue, setLoadingSubscriptionsQueue] = useState(false);
+  const [subscriptionsShowHistory, setSubscriptionsShowHistory] = useState(false);
   const [listingsShowHistory, setListingsShowHistory] = useState(false);
   const [usersData, setUsersData] = useState<{ tenants: any[]; owners: any[] }>({ tenants: [], owners: [] });
   const [loadingUsers, setLoadingUsers] = useState(false);
@@ -49,6 +53,18 @@ export default function AdminDashboardView() {
 
   useEffect(() => {
     setMounted(true);
+    const cached = localStorage.getItem("nestarrival_user");
+    if (cached) {
+      try {
+        const userObj = JSON.parse(cached);
+        if (userObj.role === "ADMIN") {
+          setCurrentUser(userObj);
+          setLoadingUser(false);
+        }
+      } catch (err) {
+        console.error("Failed to parse cached user", err);
+      }
+    }
     fetchSession();
   }, []);
 
@@ -72,11 +88,14 @@ export default function AdminDashboardView() {
     try {
       const { data } = await authApi.me();
       if (!data || !data.authenticated || data.user.role !== "ADMIN") {
+        localStorage.removeItem("nestarrival_user");
         router.push("/login");
       } else {
         setCurrentUser(data.user);
+        localStorage.setItem("nestarrival_user", JSON.stringify(data.user));
       }
     } catch (e) {
+      localStorage.removeItem("nestarrival_user");
       router.push("/login");
     } finally {
       setLoadingUser(false);
@@ -84,6 +103,7 @@ export default function AdminDashboardView() {
   };
 
   const handleLogout = async () => {
+    localStorage.removeItem("nestarrival_user");
     const res = await authApi.logout();
     if (res.status >= 200 && res.status < 300) {
       router.push("/");
@@ -97,6 +117,7 @@ export default function AdminDashboardView() {
     if (activeTab === "refunds") fetchRefunds();
     if (activeTab === "cms") fetchCmsPages();
     if (activeTab === "users") fetchUsers();
+    if (activeTab === "subscriptions") fetchSubscriptionsQueue();
   };
 
   const fetchAnalytics = async () => {
@@ -267,6 +288,34 @@ export default function AdminDashboardView() {
       }
     } catch (e) {
       console.error("Refund moderation error:", e);
+    }
+  };
+
+  const fetchSubscriptionsQueue = async () => {
+    setLoadingSubscriptionsQueue(true);
+    try {
+      const { data } = await adminApi.subscriptions();
+      setSubscriptionsQueue(Array.isArray(data?.subscriptions) ? data.subscriptions : []);
+    } catch (e) {
+      console.error("Subscriptions fetch error:", e);
+    } finally {
+      setLoadingSubscriptionsQueue(false);
+    }
+  };
+
+  const handleModerateSubscription = async (subscriptionId: string, action: "APPROVE" | "REJECT") => {
+    setProcessingAction(subscriptionId);
+    try {
+      const { data } = await adminApi.moderateSubscription({
+        subscriptionId,
+        action,
+      });
+
+      if (data) {
+        fetchSubscriptionsQueue();
+      }
+    } catch (e) {
+      console.error("Subscription moderation error:", e);
     } finally {
       setProcessingAction(null);
     }
@@ -357,7 +406,7 @@ export default function AdminDashboardView() {
       <aside className="hidden md:flex flex-col w-64 fixed inset-y-0 left-0 bg-white border-r border-slate-200 z-30 p-6 justify-between shadow-sm">
         <div className="space-y-8">
           <Link href="/" className="flex items-center space-x-2 group">
-            <ShieldCheck className="h-6 w-6 text-[#cfa052] transition-transform duration-300 group-hover:scale-110" />
+            <Logo className="h-6 w-6 text-[#cfa052] transition-transform duration-300 group-hover:scale-110" />
             <span className="text-lg font-bold tracking-tight text-[#2c2724]">
               Nest<span className="text-[#cfa052]">Arrival</span>
             </span>
@@ -368,6 +417,7 @@ export default function AdminDashboardView() {
             {navItem("analytics", BarChart3, "Analytics Dashboard")}
             {navItem("verifications", ShieldCheck, "Verification Queue")}
             {navItem("listings", Home, "Listing Moderation")}
+            {navItem("subscriptions", DollarSign, "Subscription Queue")}
             {navItem("refunds", DollarSign, "Refund Claims")}
             {navItem("cms", FileText, "CMS Editor")}
             {navItem("users", Users, "Users Directory")}
@@ -397,7 +447,7 @@ export default function AdminDashboardView() {
       {/* ── Mobile Header ────────────────────────────────────────────────── */}
       <header className="md:hidden flex items-center justify-between w-full h-16 fixed top-0 left-0 bg-white border-b border-slate-200 z-30 px-4 shadow-sm">
         <Link href="/" className="flex items-center space-x-2">
-          <ShieldCheck className="h-5 w-5 text-[#cfa052]" />
+          <Logo className="h-5 w-5 text-[#cfa052]" />
           <span className="text-base font-bold tracking-tight text-[#2c2724]">
             Nest<span className="text-[#cfa052]">Arrival</span>
           </span>
@@ -434,6 +484,7 @@ export default function AdminDashboardView() {
                   {navItem("analytics", BarChart3, "Analytics")}
                   {navItem("verifications", ShieldCheck, "Verifications")}
                   {navItem("listings", Home, "Moderation")}
+                  {navItem("subscriptions", DollarSign, "Subscriptions")}
                   {navItem("refunds", DollarSign, "Refund Claims")}
                   {navItem("cms", FileText, "CMS Editor")}
                   {navItem("users", Users, "Users Directory")}
@@ -1107,6 +1158,117 @@ export default function AdminDashboardView() {
                           )}
                         </div>
                       </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* ── TAB: Subscription Queue ─────────────────────────────── */}
+              {activeTab === "subscriptions" && (
+                <div className="space-y-6 text-xs text-slate-600">
+                  <div className="flex justify-between items-center border-b border-slate-200 pb-3">
+                    <h2 className="text-base font-bold text-slate-900">Subscription Queue</h2>
+                    <div className="flex space-x-2">
+                      <button
+                        onClick={() => setSubscriptionsShowHistory(false)}
+                        className={`px-3 py-1.5 font-bold transition-all text-xs rounded-lg cursor-pointer ${!subscriptionsShowHistory ? "bg-[#cfa052] text-white" : "bg-white text-slate-500 hover:text-slate-900 border border-slate-200"}`}
+                      >
+                        Pending Requests
+                      </button>
+                      <button
+                        onClick={() => setSubscriptionsShowHistory(true)}
+                        className={`px-3 py-1.5 font-bold transition-all text-xs rounded-lg cursor-pointer ${subscriptionsShowHistory ? "bg-[#cfa052] text-white" : "bg-white text-slate-500 hover:text-slate-900 border border-slate-200"}`}
+                      >
+                        Vetting History
+                      </button>
+                    </div>
+                  </div>
+
+                  {loadingSubscriptionsQueue ? (
+                    <div className="flex justify-center py-16"><Loader2 className="h-8 w-8 animate-spin text-[#cfa052]" /></div>
+                  ) : subscriptionsQueue.filter(sub =>
+                      subscriptionsShowHistory
+                        ? (sub.status === "APPROVED" || sub.status === "REJECTED")
+                        : sub.status === "PENDING"
+                    ).length === 0 ? (
+                    <div className="text-center py-16 bg-white border border-slate-200 rounded-xl italic text-slate-400">
+                      No subscriptions found in this category.
+                    </div>
+                  ) : (
+                    <div className="space-y-6">
+                      {subscriptionsQueue
+                        .filter(sub =>
+                          subscriptionsShowHistory
+                            ? (sub.status === "APPROVED" || sub.status === "REJECTED")
+                            : sub.status === "PENDING"
+                        )
+                        .map((sub) => (
+                          <div key={sub.id} className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4">
+                            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                              <div>
+                                <span className="font-bold text-sm text-slate-900">{sub.user?.fullName}</span>
+                                <span className="text-slate-400 ml-2">({sub.user?.email ?? "—"})</span>
+                              </div>
+                              <span className={`px-2 py-0.5 rounded-lg font-bold uppercase text-[10px] ${
+                                sub.status === "APPROVED"
+                                  ? "bg-emerald-50 border border-emerald-200 text-emerald-700"
+                                  : sub.status === "PENDING"
+                                    ? "bg-amber-50 border border-amber-200 text-amber-700"
+                                    : "bg-red-50 border border-red-200 text-red-600"
+                              }`}>
+                                {sub.status}
+                              </span>
+                            </div>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                              <div className="space-y-2.5">
+                                <p><strong className="text-slate-400 uppercase text-[9px] tracking-wider">Plan Name:</strong> {sub.name}</p>
+                                <p><strong className="text-slate-400 uppercase text-[9px] tracking-wider">Price Charged:</strong> CAD ${sub.price}</p>
+                                <p><strong className="text-slate-400 uppercase text-[9px] tracking-wider">Plan Duration:</strong> {sub.durationDays} days</p>
+                                <p><strong className="text-slate-400 uppercase text-[9px] tracking-wider">Approaches Allowed:</strong> {sub.approachesAllowed === -1 ? "Unlimited" : sub.approachesAllowed}</p>
+                                <p><strong className="text-slate-400 uppercase text-[9px] tracking-wider">Requested At:</strong> {new Date(sub.createdAt).toLocaleDateString()}</p>
+                              </div>
+
+                              {sub.status === "PENDING" ? (
+                                <div className="space-y-3 bg-slate-50 border border-slate-200 p-4 rounded-xl flex flex-col justify-between">
+                                  <div>
+                                    <p className="font-semibold text-slate-700">Billing Action Required</p>
+                                    <p className="text-slate-400 text-[10px] leading-relaxed mt-1">Please confirm that you have received payment from this user before approving their subscription.</p>
+                                  </div>
+                                  <div className="flex gap-2 justify-end">
+                                    <button
+                                      onClick={() => handleModerateSubscription(sub.id, "REJECT")}
+                                      disabled={processingAction === sub.id}
+                                      className="rounded-lg border border-red-200 bg-red-50 text-red-600 px-4 py-2 font-bold hover:bg-red-100 transition-colors flex items-center gap-1 cursor-pointer"
+                                    >
+                                      <X className="h-3.5 w-3.5" />
+                                      <span>Reject</span>
+                                    </button>
+                                    <button
+                                      onClick={() => handleModerateSubscription(sub.id, "APPROVE")}
+                                      disabled={processingAction === sub.id}
+                                      className="rounded-lg bg-[#cfa052] text-white px-4 py-2 font-bold hover:bg-[#b8903f] transition-colors flex items-center gap-1 cursor-pointer"
+                                    >
+                                      <Check className="h-3.5 w-3.5" />
+                                      <span>Approve</span>
+                                    </button>
+                                  </div>
+                                </div>
+                              ) : (
+                                <div className="flex flex-col items-center justify-center bg-slate-50 border border-slate-200 p-6 rounded-xl space-y-2 text-center">
+                                  <span className={`text-[10px] font-extrabold px-3 py-1 rounded-full uppercase tracking-wider ${
+                                    sub.status === "APPROVED"
+                                      ? "bg-emerald-50 border border-emerald-200 text-emerald-700"
+                                      : "bg-red-50 border border-red-200 text-red-600"
+                                  }`}>
+                                    Result: {sub.status}
+                                  </span>
+                                  <p className="text-slate-400 text-[10px] max-w-xs">Processed subscription request.</p>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        ))}
                     </div>
                   )}
                 </div>

@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { SUBSCRIPTION_PLANS } from "@/lib/constants";
 import { motion, AnimatePresence } from "framer-motion";
+import Logo from "@/components/Logo";
 
 const socketServerUrl = process.env.NEXT_PUBLIC_BACKEND_ORIGIN || "http://localhost:5000";
 
@@ -63,6 +64,18 @@ export default function DashboardView() {
   const socketRef = useRef<any>(null);
 
   useEffect(() => {
+    const cached = localStorage.getItem("nestarrival_user");
+    if (cached) {
+      try {
+        const userObj = JSON.parse(cached);
+        if (userObj.role === "TENANT") {
+          setCurrentUser(userObj);
+          setLoadingUser(false);
+        }
+      } catch (err) {
+        console.error("Failed to parse cached user", err);
+      }
+    }
     fetchSession();
   }, []);
 
@@ -72,7 +85,7 @@ export default function DashboardView() {
       fetchSavedListings();
       fetchChatRooms();
     }
-  }, [currentUser]);
+  }, [currentUser?.id]);
 
   useEffect(() => {
     if (activeRoom) {
@@ -138,11 +151,14 @@ export default function DashboardView() {
       const res = await fetch("/api/auth/me");
       const data = await res.json();
       if (!res.ok || !data.authenticated || data.user.role !== "TENANT") {
+        localStorage.removeItem("nestarrival_user");
         router.push("/login");
       } else {
         setCurrentUser(data.user);
+        localStorage.setItem("nestarrival_user", JSON.stringify(data.user));
       }
     } catch (e) {
+      localStorage.removeItem("nestarrival_user");
       router.push("/login");
     } finally {
       setLoadingUser(false);
@@ -150,6 +166,7 @@ export default function DashboardView() {
   };
 
   const handleLogout = async () => {
+    localStorage.removeItem("nestarrival_user");
     const res = await fetch("/api/auth/logout", {
       method: "POST",
     });
@@ -446,7 +463,7 @@ export default function DashboardView() {
         <div className="space-y-8">
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-2 group">
-            <ShieldCheck className="h-6 w-6 text-[#d4ff4d] transition-transform duration-300 group-hover:scale-110" />
+            <Logo className="h-6 w-6 text-[#d4ff4d] transition-transform duration-300 group-hover:scale-110" />
             <span className="text-lg font-bold tracking-tight text-white">
               Nest<span className="text-[#d4ff4d]">Arrival</span>
             </span>
@@ -545,7 +562,7 @@ export default function DashboardView() {
       {/* 2. Mobile Header Bar */}
       <header className="md:hidden flex items-center justify-between w-full h-16 fixed top-0 left-0 bg-sidebar-dark border-b border-contrast-dark z-30 px-4">
         <Link href="/" className="flex items-center space-x-2">
-          <ShieldCheck className="h-5 w-5 text-[#d4ff4d]" />
+          <Logo className="h-5 w-5 text-[#d4ff4d]" />
           <span className="text-base font-bold tracking-tight text-white">
             Nest<span className="text-[#d4ff4d]">Arrival</span>
           </span>
@@ -1079,10 +1096,15 @@ export default function DashboardView() {
                       )}
                     </div>
 
-                    {/* Purchase sandbox form */}
+                    {/* Purchase form - Admin approved billing */}
                     <div className="bg-card-dark p-6 rounded-xl border border-contrast-dark shadow-xl space-y-4">
-                      <h3 className="text-sm font-bold text-white">Purchase / Upgrade Plan (Stripe Sandbox)</h3>
+                      <h3 className="text-sm font-bold text-white">Request a Subscription Plan</h3>
                       
+                      <div className="rounded-lg bg-[#d4ff4d]/5 border border-[#d4ff4d]/15 p-3.5 text-[10px] text-zinc-300 leading-relaxed">
+                        <p className="font-bold text-[#d4ff4d] mb-1">📋 Admin-Approved Billing</p>
+                        <p>Submit your plan request and our team will review and manually activate your subscription within 1–2 business hours. You will receive an email confirmation once your plan is active.</p>
+                      </div>
+
                       {purchaseSuccessMsg && (
                         <div className="rounded-lg bg-emerald-950/20 border border-emerald-900/40 p-3 text-[#d4ff4d] text-xs">
                           <span>{purchaseSuccessMsg}</span>
@@ -1090,7 +1112,7 @@ export default function DashboardView() {
                       )}
                       
                       {billingError && (
-                        <div className="rounded-lg bg-red-50 border border-red-200 p-3 text-red-600 text-xs">
+                        <div className="rounded-lg bg-red-950/20 border border-red-900/40 p-3 text-red-400 text-xs">
                           <span>{billingError}</span>
                         </div>
                       )}
@@ -1113,30 +1135,9 @@ export default function DashboardView() {
                           </div>
 
                           <div>
-                            <label className="block text-zinc-400 font-bold mb-1.5">Billing Arrangement</label>
-                            <div className="flex gap-2">
-                              <button
-                                type="button"
-                                onClick={() => setPurchaseType("ONETIME")}
-                                className={`flex-grow py-2 rounded-lg border text-center font-bold text-[10px] transition-all cursor-pointer ${
-                                  purchaseType === "ONETIME"
-                                    ? "border-[#d4ff4d] bg-[#d4ff4d]/5 text-[#d4ff4d]"
-                                    : "border-contrast-dark bg-zinc-950 text-zinc-400 hover:bg-zinc-900/30"
-                                }`}
-                              >
-                                One-Time
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => setPurchaseType("SUBSCRIPTION")}
-                                className={`flex-grow py-2 rounded-lg border text-center font-bold text-[10px] transition-all cursor-pointer ${
-                                  purchaseType === "SUBSCRIPTION"
-                                    ? "border-[#d4ff4d] bg-[#d4ff4d]/5 text-[#d4ff4d]"
-                                    : "border-contrast-dark bg-zinc-950 text-zinc-400 hover:bg-zinc-900/30"
-                                }`}
-                              >
-                                Auto-Renew
-                              </button>
+                            <label className="block text-zinc-400 font-bold mb-1.5">Payment Type</label>
+                            <div className="rounded-lg border border-[#d4ff4d]/20 bg-[#d4ff4d]/5 p-2.5 text-[10px] text-[#d4ff4d] font-bold text-center">
+                              One-Time Payment
                             </div>
                           </div>
                         </div>
@@ -1187,7 +1188,7 @@ export default function DashboardView() {
                           disabled={processingPurchase}
                           className="w-full rounded-lg neon-btn-primary py-3 font-bold text-black disabled:bg-zinc-800 disabled:text-zinc-550 cursor-pointer"
                         >
-                          {processingPurchase ? "Verifying Transaction..." : "Complete Purchase (Sandbox)"}
+                          {processingPurchase ? "Submitting Request..." : "Submit Subscription Request"}
                         </button>
                       </form>
                     </div>
