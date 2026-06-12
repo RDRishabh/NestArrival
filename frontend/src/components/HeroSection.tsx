@@ -7,7 +7,6 @@ import { motion, useScroll, useTransform } from "framer-motion";
 import gsap from "gsap";
 import CustomDropdown from "@/components/CustomDropdown";
 import CustomDatePicker from "@/components/CustomDatePicker";
-import { authApi } from "@/apis/Authentication/auth";
 
 interface HeroSectionProps {
   user?: any;
@@ -33,22 +32,8 @@ export default function HeroSection({ user: propUser, loading: propLoading }: He
   const rotateX = useTransform(scrollYProgress, [0, 1], [0, 15]);
 
   useEffect(() => {
-    if (propUser !== undefined) {
-      setUser(propUser);
-      setLoading(!!propLoading);
-    } else {
-      authApi.me()
-        .then((res) => res.data)
-        .then((data) => {
-          if (data && data.authenticated) {
-            setUser(data.user);
-          }
-        })
-        .catch(() => {
-          setUser(null);
-        })
-        .finally(() => setLoading(false));
-    }
+    setUser(propUser ?? null);
+    setLoading(!!propLoading);
   }, [propUser, propLoading]);
 
   useEffect(() => {
@@ -80,7 +65,10 @@ export default function HeroSection({ user: propUser, loading: propLoading }: He
             playsInline
             className="absolute inset-0 w-full h-full object-cover opacity-50 pointer-events-none"
           >
-            <source src="https://videos.pexels.com/video-files/3121459/3121459-uhd_2560_1440_24fps.mp4" type="video/mp4" />
+            {/* Aerial view of Piaseczno suburban neighborhood by Oleksandr Petroniuk - Pexels */}
+            <source src="https://videos.pexels.com/video-files/37767355/16019361_1920_1080_60fps.mp4" type="video/mp4" />
+            {/* Fallback: luxury house exterior */}
+            <source src="https://videos.pexels.com/video-files/2519660/2519660-hd_1920_1080_24fps.mp4" type="video/mp4" />
           </video>
           {/* Strong gradient on the left side for text legibility */}
           <div className="absolute inset-0 bg-gradient-to-r from-[#fdfbf7] via-[#fdfbf7]/80 to-transparent pointer-events-none w-full lg:w-2/3" />

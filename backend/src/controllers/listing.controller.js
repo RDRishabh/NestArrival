@@ -376,16 +376,19 @@ exports.getSavedListings = async (req, res) => {
         }
       }
     });
-
-   
-    const approvedListings = list
-      .filter(item => item.listing && item.listing.status === "APPROVED")
-      .map(item => item.listing);
-
-    res.json(approvedListings);
-  } catch (error) {
-    console.error("Saved listings fetch error:", error);
-    res.status(500).json({ error: "Failed to fetch saved listings" });
+    // Filter out archived/non-approved listings in JS (Prisma does not support
+    // where filters on to-one relation includes)
+    res.json(
+      list
+        .filter((item) => item.listing && item.listing.status === "APPROVED")
+        .map((item) => item.listing)
+    );
+  } catch (err) {
+    return sendServerError(
+      res,
+      "Saved listings fetch error: " + err.message,
+      "Failed to fetch saved listings",
+    );
   }
 };
 

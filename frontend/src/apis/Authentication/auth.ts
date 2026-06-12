@@ -9,4 +9,7 @@ export const authApi = {
   verifyOtp: (payload: { email: string; otp: string }) => api.post("/auth/verify-otp", payload),
   resendOtp: (payload: { email: string }) => api.post("/auth/resend-otp", payload),
   logout: () => api.post("/auth/logout"),
+  forgotPassword: (payload: { email: string }) => api.post("/auth/forgot-password", payload),
+  resetPassword: (payload: { email: string; otp: string; newPassword: string }) =>
+    api.post("/auth/reset-password", payload),
 };

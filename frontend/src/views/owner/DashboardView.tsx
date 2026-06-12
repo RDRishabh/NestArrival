@@ -4,8 +4,8 @@ import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { io } from "socket.io-client";
-import { 
-  Home, MessageSquare, ShieldCheck, MapPin, Bed, Bath, 
+import {
+  Home, MessageSquare, ShieldCheck, MapPin, Bed, Bath,
   Calendar, ArrowRight, UserCheck, AlertTriangle, Send, Loader2,
   PlusCircle, Edit3, Eye, CheckCircle, Clock, Trash2, X, Sparkles, LogOut, Menu, Ban
 } from "lucide-react";
@@ -121,32 +121,27 @@ export default function DashboardView() {
     const res = await authApi.logout();
     if (res.status >= 200 && res.status < 300) {
       router.push("/");
-      router.refresh();
     }
   };
 
   const fetchListings = async () => {
-  setLoadingListings(true);
-  try {
-    const { data } = await listingsApi.mine();
-    const listingsData = Array.isArray(data) ? data : (Array.isArray(data?.listings) ? data.listings : []);
-    setListings(listingsData);
-  } catch (e) {
-    console.error(e);
-    setListings([]); 
-  } finally {
-    setLoadingListings(false);
-  }
-};
+    setLoadingListings(true);
+    try {
+      const { data } = await listingsApi.mine();
+      setListings(Array.isArray(data) ? data : (data?.listings ?? []));
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoadingListings(false);
+    }
+  };
 
- const fetchChatRooms = async () => {
-  try {
-    const { data } = await chatApi.listRooms();
-    let roomsData = [];
-    if (Array.isArray(data)) {
-      roomsData = data;
-    } else if (Array.isArray(data?.rooms)) {
-      roomsData = data.rooms;
+  const fetchChatRooms = async () => {
+    try {
+      const { data } = await chatApi.listRooms();
+      setChatRooms(Array.isArray(data) ? data : (data?.rooms ?? []));
+    } catch (e) {
+      console.error(e);
     }
     setChatRooms(roomsData);
   } catch (e) {
@@ -156,18 +151,16 @@ export default function DashboardView() {
 };
 
   const fetchMessages = async (roomId: string) => {
-  setLoadingMessages(true);
-  try {
-    const { data } = await chatApi.listMessages(roomId);
-    const messagesData = Array.isArray(data) ? data : (Array.isArray(data?.messages) ? data.messages : []);
-    setMessages(messagesData);
-  } catch (e) {
-    console.error(e);
-    setMessages([]); 
-  } finally {
-    setLoadingMessages(false);
-  }
-};
+    setLoadingMessages(true);
+    try {
+      const { data } = await chatApi.listMessages(roomId);
+      setMessages(Array.isArray(data) ? data : (data?.messages ?? []));
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoadingMessages(false);
+    }
+  };
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -320,7 +313,7 @@ export default function DashboardView() {
             <h2 className="text-lg font-bold text-[#0f172a] uppercase tracking-tight">Access Prohibited</h2>
             <p className="text-[10px] text-red-500 uppercase tracking-widest font-extrabold mt-1">Banned Account</p>
           </div>
-          
+
           <div className="bg-[#fdfbf7] border border-[#f4efe6] p-4 rounded-xl text-left leading-relaxed text-slate-655 space-y-1.5">
             <strong className="text-[#352f2a]">Suspicion Notice:</strong>
             <p className="italic">"{currentUser.banReason || "Violation of Community Safety Guidelines."}"</p>
@@ -329,7 +322,7 @@ export default function DashboardView() {
           <p className="text-[#8a7d6a] leading-normal">
             NestArrival enforces a zero-tolerance policy against fraudulent documentation, scam listings, or threat behaviors. For appeals or data claims, contact administration at:
           </p>
-          
+
           <div className="pt-2">
             <a href="mailto:support@nestarrival.ca" className="inline-block text-[#cfa052] border border-[#cfa052]/20 bg-[#cfa052]/5 px-5 py-2.5 rounded-lg font-bold hover:bg-[#cfa052]/10 transition-colors">
               support@nestarrival.ca
@@ -353,7 +346,7 @@ export default function DashboardView() {
 
   return (
     <div className="light-theme-dashboard flex min-h-screen bg-content-dark text-[#f5f5f7]">
-      
+
       {/* 1. Desktop Left Sidebar */}
       <aside className="hidden md:flex flex-col w-64 fixed inset-y-0 left-0 bg-sidebar-dark border-r border-contrast-dark z-30 p-6 justify-between">
         <div className="space-y-8">
@@ -368,14 +361,13 @@ export default function DashboardView() {
           {/* Navigation Tab Menu */}
           <div className="space-y-1">
             <span className="text-[9px] font-extrabold text-zinc-500 uppercase tracking-wider block px-2.5 mb-2">OWNER PORTAL</span>
-            
+
             <button
               onClick={() => setActiveTab("listings")}
-              className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                activeTab === "listings"
+              className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${activeTab === "listings"
                   ? "bg-[#d4ff4d]/5 text-[#d4ff4d] border-l-2 border-[#d4ff4d]"
                   : "text-zinc-400 hover:text-white hover:bg-zinc-900/30"
-              }`}
+                }`}
             >
               <Home className="h-4 w-4" />
               <span>My Properties</span>
@@ -383,11 +375,10 @@ export default function DashboardView() {
 
             <button
               onClick={() => setActiveTab("approaches")}
-              className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                activeTab === "approaches"
+              className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${activeTab === "approaches"
                   ? "bg-[#d4ff4d]/5 text-[#d4ff4d] border-l-2 border-[#d4ff4d]"
                   : "text-zinc-400 hover:text-white hover:bg-zinc-900/30"
-              }`}
+                }`}
             >
               <div className="flex items-center space-x-3">
                 <MessageSquare className="h-4 w-4" />
@@ -402,11 +393,10 @@ export default function DashboardView() {
 
             <button
               onClick={() => setActiveTab("verification")}
-              className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                activeTab === "verification"
+              className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${activeTab === "verification"
                   ? "bg-[#d4ff4d]/5 text-[#d4ff4d] border-l-2 border-[#d4ff4d]"
                   : "text-zinc-400 hover:text-white hover:bg-zinc-900/30"
-              }`}
+                }`}
             >
               <ShieldCheck className="h-4 w-4" />
               <span>Auditing Status</span>
@@ -474,18 +464,16 @@ export default function DashboardView() {
                 <div className="space-y-1">
                   <button
                     onClick={() => { setActiveTab("listings"); setMobileMenuOpen(false); }}
-                    className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-xs font-bold ${
-                      activeTab === "listings" ? "bg-[#d4ff4d]/5 text-[#d4ff4d]" : "text-zinc-400"
-                    }`}
+                    className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-xs font-bold ${activeTab === "listings" ? "bg-[#d4ff4d]/5 text-[#d4ff4d]" : "text-zinc-400"
+                      }`}
                   >
                     <Home className="h-4 w-4" />
                     <span>My Properties</span>
                   </button>
                   <button
                     onClick={() => { setActiveTab("approaches"); setMobileMenuOpen(false); }}
-                    className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-bold ${
-                      activeTab === "approaches" ? "bg-[#d4ff4d]/5 text-[#d4ff4d]" : "text-zinc-400"
-                    }`}
+                    className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-bold ${activeTab === "approaches" ? "bg-[#d4ff4d]/5 text-[#d4ff4d]" : "text-zinc-400"
+                      }`}
                   >
                     <div className="flex items-center space-x-3">
                       <MessageSquare className="h-4 w-4" />
@@ -495,16 +483,15 @@ export default function DashboardView() {
                   </button>
                   <button
                     onClick={() => { setActiveTab("verification"); setMobileMenuOpen(false); }}
-                    className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-xs font-bold ${
-                      activeTab === "verification" ? "bg-[#d4ff4d]/5 text-[#d4ff4d]" : "text-zinc-400"
-                    }`}
+                    className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-xs font-bold ${activeTab === "verification" ? "bg-[#d4ff4d]/5 text-[#d4ff4d]" : "text-zinc-400"
+                      }`}
                   >
                     <ShieldCheck className="h-4 w-4" />
                     <span>Auditing Status</span>
                   </button>
                 </div>
               </div>
-              
+
               <div className="space-y-4 pt-4 border-t border-zinc-900">
                 <div className="px-2">
                   <p className="text-xs font-bold text-white truncate">{currentUser.fullName}</p>
@@ -526,10 +513,10 @@ export default function DashboardView() {
       {/* 3. Right Content Pane */}
       <div className="flex-grow md:pl-64 flex flex-col min-h-screen bg-content-dark pt-16 md:pt-0">
         <main className="flex-grow p-6 md:p-10 relative z-10">
-          
+
           {/* Verification Alert Banners */}
           {!isVerified && (
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               className="mb-6 rounded-xl border p-4 text-xs shadow-sm flex items-start space-x-3 bg-card-dark border-contrast-dark"
@@ -537,18 +524,18 @@ export default function DashboardView() {
               <AlertTriangle className="h-5 w-5 text-[#d4ff4d] flex-shrink-0" />
               <div className="space-y-1">
                 <p className="font-bold text-white">
-                  {hasPendingVerification 
-                    ? "Property Owner Audit In Progress" 
-                    : isRejected 
-                    ? "Verification Rejected" 
-                    : "Onboarding Incomplete"}
+                  {hasPendingVerification
+                    ? "Property Owner Audit In Progress"
+                    : isRejected
+                      ? "Verification Rejected"
+                      : "Onboarding Incomplete"}
                 </p>
                 <p className="text-zinc-400">
-                  {hasPendingVerification 
+                  {hasPendingVerification
                     ? "Our administration is manually validating your land deeds and municipal tax bills. Posting listings requires approval."
                     : isRejected
-                    ? "Your ownership credentials did not pass our checks. Please contact Support to submit valid property deeds."
-                    : "NestArrival enforces a verification-first safety model. You must complete the guided verification form to upload property listings."}
+                      ? "Your ownership credentials did not pass our checks. Please contact Support to submit valid property deeds."
+                      : "NestArrival enforces a verification-first safety model. You must complete the guided verification form to upload property listings."}
                 </p>
                 {!hasPendingVerification && (
                   <button
@@ -604,17 +591,16 @@ export default function DashboardView() {
                               <Home className="h-6 w-6 mb-1 text-zinc-700" />
                               <span>Property Photo Placeholder</span>
                             </div>
-                            
+
                             {/* Moderation status badge */}
-                            <span className={`absolute top-3 right-3 rounded-lg px-2 py-0.5 text-[9px] font-bold shadow ${
-                              item.status === "APPROVED"
+                            <span className={`absolute top-3 right-3 rounded-lg px-2 py-0.5 text-[9px] font-bold shadow ${item.status === "APPROVED"
                                 ? "bg-emerald-950/40 border border-emerald-850 text-emerald-450"
                                 : item.status === "PENDING_REVIEW"
-                                ? "bg-[#d4ff4d]/10 border border-[#d4ff4d]/20 text-[#d4ff4d]"
-                                : item.status === "REJECTED"
-                                ? "bg-red-955 border border-red-900 text-red-400"
-                                : "bg-zinc-900 border border-zinc-800 text-zinc-400"
-                            }`}>
+                                  ? "bg-[#d4ff4d]/10 border border-[#d4ff4d]/20 text-[#d4ff4d]"
+                                  : item.status === "REJECTED"
+                                    ? "bg-red-955 border border-red-900 text-red-400"
+                                    : "bg-zinc-900 border border-zinc-800 text-zinc-400"
+                              }`}>
                               {item.status}
                             </span>
                           </div>
@@ -627,7 +613,7 @@ export default function DashboardView() {
                               </div>
                               <h3 className="font-bold text-white line-clamp-1">{item.title}</h3>
                               <p className="text-zinc-400 line-clamp-2 leading-relaxed">{item.description}</p>
-                              
+
                               {item.adminFeedback && (
                                 <div className="mt-2 p-2 rounded-lg bg-red-950/10 border border-red-900/40 text-[10px] text-red-400 italic leading-relaxed">
                                   <strong>Admin Feedback:</strong> {item.adminFeedback}
@@ -674,9 +660,8 @@ export default function DashboardView() {
                           <button
                             key={room.id}
                             onClick={() => setActiveRoom(room)}
-                            className={`w-full text-left p-4 flex flex-col gap-1 transition-all cursor-pointer ${
-                              activeRoom?.id === room.id ? "bg-[#d4ff4d]/[0.02] border-l-2 border-[#d4ff4d]" : "hover:bg-zinc-900/20"
-                            }`}
+                            className={`w-full text-left p-4 flex flex-col gap-1 transition-all cursor-pointer ${activeRoom?.id === room.id ? "bg-[#d4ff4d]/[0.02] border-l-2 border-[#d4ff4d]" : "hover:bg-zinc-900/20"
+                              }`}
                           >
                             <div className="flex items-center justify-between">
                               <span className="font-bold text-zinc-200">{room.tenant.fullName}</span>
@@ -716,11 +701,10 @@ export default function DashboardView() {
                               messages.map((msg) => (
                                 <div
                                   key={msg.id}
-                                  className={`flex flex-col max-w-[80%] rounded-xl p-3 ${
-                                    msg.senderId === currentUser.id
+                                  className={`flex flex-col max-w-[80%] rounded-xl p-3 ${msg.senderId === currentUser.id
                                       ? "bg-[#d4ff4d]/5 border border-[#d4ff4d]/15 text-white ml-auto rounded-tr-none"
                                       : "bg-zinc-950 border border-contrast-dark text-zinc-100 mr-auto rounded-tl-none"
-                                  }`}
+                                    }`}
                                 >
                                   <span className="text-[9px] opacity-60 font-semibold mb-1">
                                     {msg.senderId === currentUser.id ? "You" : msg.sender.fullName}
@@ -756,7 +740,7 @@ export default function DashboardView() {
                           <span className="font-bold text-white border-b border-contrast-dark pb-2 block">
                             Relocation Card
                           </span>
-                          
+
                           <div className="space-y-4">
                             <div>
                               <span className="text-[9px] text-zinc-550 font-bold uppercase tracking-wider block mb-0.5">ORIGIN COUNTRY</span>
@@ -791,322 +775,321 @@ export default function DashboardView() {
                 </div>
               )}
 
-            {/* TAB 3: Auditing Status */}
-            {activeTab === "verification" && (
-              <div className="max-w-xl mx-auto glass-panel p-6 rounded-xl border border-zinc-900 bg-zinc-950/20 text-xs shadow-xl">
-                <h3 className="text-sm font-bold text-white mb-4 flex items-center space-x-1.5">
-                  <ShieldCheck className="h-5 w-5 text-[#d4ff4d]" />
-                  <span>Owner Audit Summary</span>
-                </h3>
+              {/* TAB 3: Auditing Status */}
+              {activeTab === "verification" && (
+                <div className="max-w-xl mx-auto glass-panel p-6 rounded-xl border border-zinc-900 bg-zinc-950/20 text-xs shadow-xl">
+                  <h3 className="text-sm font-bold text-white mb-4 flex items-center space-x-1.5">
+                    <ShieldCheck className="h-5 w-5 text-[#d4ff4d]" />
+                    <span>Owner Audit Summary</span>
+                  </h3>
 
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center p-3 rounded-lg bg-zinc-950 border border-zinc-900">
-                    <span className="font-bold text-zinc-500">Immigration/Residency Status:</span>
-                    <span className="font-bold text-zinc-200">{currentUser.residencyStatus || "Unconfigured"}</span>
-                  </div>
-
-                  <div className="flex justify-between items-center p-3 rounded-lg bg-zinc-950 border border-zinc-900">
-                    <span className="font-bold text-zinc-500">Security Credentials Status:</span>
-                    <span className={`font-bold uppercase ${
-                      isVerified 
-                        ? "text-emerald-400" 
-                        : hasPendingVerification 
-                        ? "text-[#d4ff4d]" 
-                        : "text-red-400"
-                    }`}>
-                      {currentUser.verificationStatus}
-                    </span>
-                  </div>
-
-                  {currentUser.verificationRequest?.adminNotes && (
-                    <div className="p-3 rounded-lg bg-zinc-950 border border-zinc-900 space-y-1">
-                      <span className="font-bold text-zinc-450">Auditor Notes:</span>
-                      <p className="text-zinc-300 leading-relaxed">{currentUser.verificationRequest.adminNotes}</p>
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center p-3 rounded-lg bg-zinc-950 border border-zinc-900">
+                      <span className="font-bold text-zinc-500">Immigration/Residency Status:</span>
+                      <span className="font-bold text-zinc-200">{currentUser.residencyStatus || "Unconfigured"}</span>
                     </div>
-                  )}
+
+                    <div className="flex justify-between items-center p-3 rounded-lg bg-zinc-950 border border-zinc-900">
+                      <span className="font-bold text-zinc-500">Security Credentials Status:</span>
+                      <span className={`font-bold uppercase ${isVerified
+                          ? "text-emerald-400"
+                          : hasPendingVerification
+                            ? "text-[#d4ff4d]"
+                            : "text-red-400"
+                        }`}>
+                        {currentUser.verificationStatus}
+                      </span>
+                    </div>
+
+                    {currentUser.verificationRequest?.adminNotes && (
+                      <div className="p-3 rounded-lg bg-zinc-950 border border-zinc-900 space-y-1">
+                        <span className="font-bold text-zinc-450">Auditor Notes:</span>
+                        <p className="text-zinc-300 leading-relaxed">{currentUser.verificationRequest.adminNotes}</p>
+                      </div>
+                    )}
+                  </div>
                 </div>
+              )}
+            </motion.div>
+          </AnimatePresence>
+
+        </main>
+
+        {/* CREATE LISTING MODAL */}
+        {showAddModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm text-xs text-white">
+            <div className="glass-panel w-full max-w-md rounded-2xl border border-zinc-900 p-6 bg-zinc-950 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+              <div className="flex items-center justify-between mb-4 border-b border-zinc-900 pb-2">
+                <h2 className="text-sm font-bold text-white">Add Property Listing</h2>
+                <button onClick={() => setShowAddModal(false)} className="text-zinc-500 hover:text-white cursor-pointer"><X className="h-4 w-4" /></button>
               </div>
-            )}
-          </motion.div>
-        </AnimatePresence>
 
-      </main>
+              {formError && (
+                <div className="mb-4 rounded-lg bg-red-950/20 border border-red-900 p-2.5 text-red-400">
+                  <span>{formError}</span>
+                </div>
+              )}
 
-      {/* CREATE LISTING MODAL */}
-      {showAddModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm text-xs text-white">
-          <div className="glass-panel w-full max-w-md rounded-2xl border border-zinc-900 p-6 bg-zinc-950 shadow-2xl relative max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between mb-4 border-b border-zinc-900 pb-2">
-              <h2 className="text-sm font-bold text-white">Add Property Listing</h2>
-              <button onClick={() => setShowAddModal(false)} className="text-zinc-500 hover:text-white cursor-pointer"><X className="h-4 w-4" /></button>
+              <form onSubmit={handleCreateListing} className="space-y-4">
+                <div>
+                  <label className="block text-zinc-400 font-bold mb-1.5">Property Title</label>
+                  <input
+                    type="text"
+                    required
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    placeholder="e.g. Spacious 2-Bedroom Condo Near Subway"
+                    className="w-full rounded-lg px-3 py-2.5 glass-input text-white text-xs"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-zinc-400 font-bold mb-1.5">Property Description</label>
+                  <textarea
+                    required
+                    rows={3}
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    placeholder="Provide details about utilities, amenities, parking, lease length..."
+                    className="w-full rounded-lg px-3 py-2.5 glass-input text-white text-xs resize-none"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-zinc-400 font-bold mb-1.5">Monthly Rent (CAD)</label>
+                    <input
+                      type="number"
+                      required
+                      value={rent}
+                      onChange={(e) => setRent(e.target.value)}
+                      placeholder="e.g. 1800"
+                      className="w-full rounded-lg px-3 py-2.5 glass-input text-white text-xs"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-zinc-400 font-bold mb-1.5">Availability Date</label>
+                    <input
+                      type="date"
+                      required
+                      value={availabilityDate}
+                      onChange={(e) => setAvailabilityDate(e.target.value)}
+                      className="w-full rounded-lg px-3 py-2.5 glass-input text-white text-xs"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-zinc-400 font-bold mb-1.5">Location Address</label>
+                    <input
+                      type="text"
+                      required
+                      value={location}
+                      onChange={(e) => setLocation(e.target.value)}
+                      placeholder="e.g. 123 Yonge St"
+                      className="w-full rounded-lg px-3 py-2.5 glass-input text-white text-xs"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-zinc-400 font-bold mb-1.5">City</label>
+                    <input
+                      type="text"
+                      required
+                      value={city}
+                      onChange={(e) => setCity(e.target.value)}
+                      placeholder="e.g. Toronto"
+                      className="w-full rounded-lg px-3 py-2.5 glass-input text-white text-xs"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-zinc-400 font-bold mb-1.5">Bedrooms</label>
+                    <select
+                      value={bedrooms}
+                      onChange={(e) => setBedrooms(e.target.value)}
+                      className="w-full rounded-lg border border-zinc-900 p-2.5 bg-zinc-950 text-white focus:outline-none focus:border-[#d4ff4d]"
+                    >
+                      <option value="1" className="bg-zinc-950">1 Bed</option>
+                      <option value="2" className="bg-zinc-950">2 Beds</option>
+                      <option value="3" className="bg-zinc-950">3 Beds</option>
+                      <option value="4" className="bg-zinc-950">4+ Beds</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-zinc-400 font-bold mb-1.5">Bathrooms</label>
+                    <select
+                      value={bathrooms}
+                      onChange={(e) => setBathrooms(e.target.value)}
+                      className="w-full rounded-lg border border-zinc-900 p-2.5 bg-zinc-950 text-white focus:outline-none focus:border-[#d4ff4d]"
+                    >
+                      <option value="1" className="bg-zinc-950">1 Bath</option>
+                      <option value="2" className="bg-zinc-950">2 Baths</option>
+                      <option value="3" className="bg-zinc-950">3+ Baths</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="flex justify-end gap-2 border-t border-zinc-900 pt-4">
+                  <button
+                    type="button"
+                    onClick={() => setShowAddModal(false)}
+                    className="rounded-lg border border-zinc-800 px-4 py-2 font-bold text-zinc-450 hover:bg-zinc-900 cursor-pointer text-zinc-400 hover:text-white"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={submittingForm}
+                    className="rounded-lg neon-btn-primary px-5 py-2 font-bold text-black cursor-pointer"
+                  >
+                    {submittingForm ? "Submitting..." : "Submit Listing"}
+                  </button>
+                </div>
+              </form>
             </div>
-            
-            {formError && (
-              <div className="mb-4 rounded-lg bg-red-950/20 border border-red-900 p-2.5 text-red-400">
-                <span>{formError}</span>
-              </div>
-            )}
-
-            <form onSubmit={handleCreateListing} className="space-y-4">
-              <div>
-                <label className="block text-zinc-400 font-bold mb-1.5">Property Title</label>
-                <input
-                  type="text"
-                  required
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  placeholder="e.g. Spacious 2-Bedroom Condo Near Subway"
-                  className="w-full rounded-lg px-3 py-2.5 glass-input text-white text-xs"
-                />
-              </div>
-
-              <div>
-                <label className="block text-zinc-400 font-bold mb-1.5">Property Description</label>
-                <textarea
-                  required
-                  rows={3}
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Provide details about utilities, amenities, parking, lease length..."
-                  className="w-full rounded-lg px-3 py-2.5 glass-input text-white text-xs resize-none"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-zinc-400 font-bold mb-1.5">Monthly Rent (CAD)</label>
-                  <input
-                    type="number"
-                    required
-                    value={rent}
-                    onChange={(e) => setRent(e.target.value)}
-                    placeholder="e.g. 1800"
-                    className="w-full rounded-lg px-3 py-2.5 glass-input text-white text-xs"
-                  />
-                </div>
-                <div>
-                  <label className="block text-zinc-400 font-bold mb-1.5">Availability Date</label>
-                  <input
-                    type="date"
-                    required
-                    value={availabilityDate}
-                    onChange={(e) => setAvailabilityDate(e.target.value)}
-                    className="w-full rounded-lg px-3 py-2.5 glass-input text-white text-xs"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-zinc-400 font-bold mb-1.5">Location Address</label>
-                  <input
-                    type="text"
-                    required
-                    value={location}
-                    onChange={(e) => setLocation(e.target.value)}
-                    placeholder="e.g. 123 Yonge St"
-                    className="w-full rounded-lg px-3 py-2.5 glass-input text-white text-xs"
-                  />
-                </div>
-                <div>
-                  <label className="block text-zinc-400 font-bold mb-1.5">City</label>
-                  <input
-                    type="text"
-                    required
-                    value={city}
-                    onChange={(e) => setCity(e.target.value)}
-                    placeholder="e.g. Toronto"
-                    className="w-full rounded-lg px-3 py-2.5 glass-input text-white text-xs"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-zinc-400 font-bold mb-1.5">Bedrooms</label>
-                  <select
-                    value={bedrooms}
-                    onChange={(e) => setBedrooms(e.target.value)}
-                    className="w-full rounded-lg border border-zinc-900 p-2.5 bg-zinc-950 text-white focus:outline-none focus:border-[#d4ff4d]"
-                  >
-                    <option value="1" className="bg-zinc-950">1 Bed</option>
-                    <option value="2" className="bg-zinc-950">2 Beds</option>
-                    <option value="3" className="bg-zinc-950">3 Beds</option>
-                    <option value="4" className="bg-zinc-950">4+ Beds</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-zinc-400 font-bold mb-1.5">Bathrooms</label>
-                  <select
-                    value={bathrooms}
-                    onChange={(e) => setBathrooms(e.target.value)}
-                    className="w-full rounded-lg border border-zinc-900 p-2.5 bg-zinc-950 text-white focus:outline-none focus:border-[#d4ff4d]"
-                  >
-                    <option value="1" className="bg-zinc-950">1 Bath</option>
-                    <option value="2" className="bg-zinc-950">2 Baths</option>
-                    <option value="3" className="bg-zinc-950">3+ Baths</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="flex justify-end gap-2 border-t border-zinc-900 pt-4">
-                <button
-                  type="button"
-                  onClick={() => setShowAddModal(false)}
-                  className="rounded-lg border border-zinc-800 px-4 py-2 font-bold text-zinc-450 hover:bg-zinc-900 cursor-pointer text-zinc-400 hover:text-white"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={submittingForm}
-                  className="rounded-lg neon-btn-primary px-5 py-2 font-bold text-black cursor-pointer"
-                >
-                  {submittingForm ? "Submitting..." : "Submit Listing"}
-                </button>
-              </div>
-            </form>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* EDIT LISTING MODAL */}
-      {showEditModal && editingListing && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm text-xs text-white">
-          <div className="glass-panel w-full max-w-md rounded-2xl border border-zinc-900 p-6 bg-zinc-950 shadow-2xl relative max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between mb-4 border-b border-zinc-900 pb-2">
-              <h2 className="text-sm font-bold text-white">Edit Property Listing</h2>
-              <button onClick={() => { setShowEditModal(false); setEditingListing(null); }} className="text-zinc-500 hover:text-white cursor-pointer"><X className="h-4 w-4" /></button>
+        {/* EDIT LISTING MODAL */}
+        {showEditModal && editingListing && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm text-xs text-white">
+            <div className="glass-panel w-full max-w-md rounded-2xl border border-zinc-900 p-6 bg-zinc-950 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+              <div className="flex items-center justify-between mb-4 border-b border-zinc-900 pb-2">
+                <h2 className="text-sm font-bold text-white">Edit Property Listing</h2>
+                <button onClick={() => { setShowEditModal(false); setEditingListing(null); }} className="text-zinc-500 hover:text-white cursor-pointer"><X className="h-4 w-4" /></button>
+              </div>
+
+              {formError && (
+                <div className="mb-4 rounded-lg bg-red-950/20 border border-red-900 p-2.5 text-red-400">
+                  <span>{formError}</span>
+                </div>
+              )}
+
+              <form onSubmit={handleUpdateListing} className="space-y-4">
+                <div>
+                  <label className="block text-zinc-400 font-bold mb-1.5">Property Title</label>
+                  <input
+                    type="text"
+                    required
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    className="w-full rounded-lg px-3 py-2.5 glass-input text-white text-xs"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-zinc-400 font-bold mb-1.5">Property Description</label>
+                  <textarea
+                    required
+                    rows={3}
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    className="w-full rounded-lg px-3 py-2.5 glass-input text-white text-xs resize-none"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-zinc-400 font-bold mb-1.5">Monthly Rent (CAD)</label>
+                    <input
+                      type="number"
+                      required
+                      value={rent}
+                      onChange={(e) => setRent(e.target.value)}
+                      className="w-full rounded-lg px-3 py-2.5 glass-input text-white text-xs"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-zinc-400 font-bold mb-1.5">Availability Date</label>
+                    <input
+                      type="date"
+                      required
+                      value={availabilityDate}
+                      onChange={(e) => setAvailabilityDate(e.target.value)}
+                      className="w-full rounded-lg px-3 py-2.5 glass-input text-white text-xs"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-zinc-400 font-bold mb-1.5">Location Address</label>
+                    <input
+                      type="text"
+                      required
+                      value={location}
+                      onChange={(e) => setLocation(e.target.value)}
+                      className="w-full rounded-lg px-3 py-2.5 glass-input text-white text-xs"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-zinc-400 font-bold mb-1.5">City</label>
+                    <input
+                      type="text"
+                      required
+                      value={city}
+                      onChange={(e) => setCity(e.target.value)}
+                      className="w-full rounded-lg px-3 py-2.5 glass-input text-white text-xs"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-zinc-400 font-bold mb-1.5">Bedrooms</label>
+                    <select
+                      value={bedrooms}
+                      onChange={(e) => setBedrooms(e.target.value)}
+                      className="w-full rounded-lg border border-zinc-900 p-2.5 bg-zinc-950 text-white focus:outline-none focus:border-[#d4ff4d]"
+                    >
+                      <option value="1" className="bg-zinc-950">1 Bed</option>
+                      <option value="2" className="bg-zinc-950">2 Beds</option>
+                      <option value="3" className="bg-zinc-950">3 Beds</option>
+                      <option value="4" className="bg-zinc-950">4+ Beds</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-zinc-400 font-bold mb-1.5">Bathrooms</label>
+                    <select
+                      value={bathrooms}
+                      onChange={(e) => setBathrooms(e.target.value)}
+                      className="w-full rounded-lg border border-zinc-900 p-2.5 bg-zinc-950 text-white focus:outline-none focus:border-[#d4ff4d]"
+                    >
+                      <option value="1" className="bg-zinc-950">1 Bath</option>
+                      <option value="2" className="bg-zinc-950">2 Baths</option>
+                      <option value="3" className="bg-zinc-950">3+ Baths</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="flex justify-end gap-2 border-t border-zinc-900 pt-4">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowEditModal(false);
+                      setEditingListing(null);
+                    }}
+                    className="rounded-lg border border-zinc-800 px-4 py-2 font-bold text-zinc-450 hover:bg-zinc-900 cursor-pointer text-zinc-400 hover:text-white"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={submittingForm}
+                    className="rounded-lg neon-btn-primary px-5 py-2 font-bold text-black cursor-pointer"
+                  >
+                    {submittingForm ? "Saving..." : "Save Changes"}
+                  </button>
+                </div>
+              </form>
             </div>
-            
-            {formError && (
-              <div className="mb-4 rounded-lg bg-red-950/20 border border-red-900 p-2.5 text-red-400">
-                <span>{formError}</span>
-              </div>
-            )}
-
-            <form onSubmit={handleUpdateListing} className="space-y-4">
-              <div>
-                <label className="block text-zinc-400 font-bold mb-1.5">Property Title</label>
-                <input
-                  type="text"
-                  required
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  className="w-full rounded-lg px-3 py-2.5 glass-input text-white text-xs"
-                />
-              </div>
-
-              <div>
-                <label className="block text-zinc-400 font-bold mb-1.5">Property Description</label>
-                <textarea
-                  required
-                  rows={3}
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  className="w-full rounded-lg px-3 py-2.5 glass-input text-white text-xs resize-none"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-zinc-400 font-bold mb-1.5">Monthly Rent (CAD)</label>
-                  <input
-                    type="number"
-                    required
-                    value={rent}
-                    onChange={(e) => setRent(e.target.value)}
-                    className="w-full rounded-lg px-3 py-2.5 glass-input text-white text-xs"
-                  />
-                </div>
-                <div>
-                  <label className="block text-zinc-400 font-bold mb-1.5">Availability Date</label>
-                  <input
-                    type="date"
-                    required
-                    value={availabilityDate}
-                    onChange={(e) => setAvailabilityDate(e.target.value)}
-                    className="w-full rounded-lg px-3 py-2.5 glass-input text-white text-xs"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-zinc-400 font-bold mb-1.5">Location Address</label>
-                  <input
-                    type="text"
-                    required
-                    value={location}
-                    onChange={(e) => setLocation(e.target.value)}
-                    className="w-full rounded-lg px-3 py-2.5 glass-input text-white text-xs"
-                  />
-                </div>
-                <div>
-                  <label className="block text-zinc-400 font-bold mb-1.5">City</label>
-                  <input
-                    type="text"
-                    required
-                    value={city}
-                    onChange={(e) => setCity(e.target.value)}
-                    className="w-full rounded-lg px-3 py-2.5 glass-input text-white text-xs"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-zinc-400 font-bold mb-1.5">Bedrooms</label>
-                  <select
-                    value={bedrooms}
-                    onChange={(e) => setBedrooms(e.target.value)}
-                    className="w-full rounded-lg border border-zinc-900 p-2.5 bg-zinc-950 text-white focus:outline-none focus:border-[#d4ff4d]"
-                  >
-                    <option value="1" className="bg-zinc-950">1 Bed</option>
-                    <option value="2" className="bg-zinc-950">2 Beds</option>
-                    <option value="3" className="bg-zinc-950">3 Beds</option>
-                    <option value="4" className="bg-zinc-950">4+ Beds</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-zinc-400 font-bold mb-1.5">Bathrooms</label>
-                  <select
-                    value={bathrooms}
-                    onChange={(e) => setBathrooms(e.target.value)}
-                    className="w-full rounded-lg border border-zinc-900 p-2.5 bg-zinc-950 text-white focus:outline-none focus:border-[#d4ff4d]"
-                  >
-                    <option value="1" className="bg-zinc-950">1 Bath</option>
-                    <option value="2" className="bg-zinc-950">2 Baths</option>
-                    <option value="3" className="bg-zinc-950">3+ Baths</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="flex justify-end gap-2 border-t border-zinc-900 pt-4">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowEditModal(false);
-                    setEditingListing(null);
-                  }}
-                  className="rounded-lg border border-zinc-800 px-4 py-2 font-bold text-zinc-450 hover:bg-zinc-900 cursor-pointer text-zinc-400 hover:text-white"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={submittingForm}
-                  className="rounded-lg neon-btn-primary px-5 py-2 font-bold text-black cursor-pointer"
-                >
-                  {submittingForm ? "Saving..." : "Save Changes"}
-                </button>
-              </div>
-            </form>
           </div>
-        </div>
-      )}
+        )}
 
+      </div>
     </div>
-  </div>
-);
+  );
 }
