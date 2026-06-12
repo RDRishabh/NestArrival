@@ -26,7 +26,7 @@ export default function PricingGrid({ currency, paymentMode }: PricingGridProps)
   };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-20 text-xs">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-20 text-xs">
       
       {/* Free Tier Card (First) */}
       <motion.div

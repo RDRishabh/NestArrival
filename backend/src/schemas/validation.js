@@ -138,7 +138,7 @@ const initiateChatSchema = z.object({
 // Subscription Schemas
 const createSubscriptionSchema = z.object({
   planId: z.string().min(1, "Plan ID is required"),
-  type: z.enum(["SUBSCRIPTION", "ONE_TIME"]).optional().default("SUBSCRIPTION"),
+  type: z.enum(["SUBSCRIPTION", "ONE_TIME", "ONETIME"]).optional().default("SUBSCRIPTION"),
   purchaseUrgentMatch: z.boolean().optional().default(false),
 });
 

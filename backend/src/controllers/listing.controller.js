@@ -179,6 +179,7 @@ exports.createListing = async (req, res) => {
       bedrooms,
       bathrooms,
       availabilityDate,
+      photos,
     } = req.body;
 
     if (
@@ -222,7 +223,7 @@ exports.createListing = async (req, res) => {
         bedrooms: bedroomsValue,
         bathrooms: bathroomsValue,
         availabilityDate: availDate,
-        photos: [],
+        photos: Array.isArray(photos) ? photos : [],
         status: "PENDING_REVIEW",
       },
     });
@@ -247,6 +248,7 @@ exports.updateListing = async (req, res) => {
       bedrooms,
       bathrooms,
       availabilityDate,
+      photos,
     } = req.body;
 
     const item = await prisma.listing.findUnique({
@@ -309,6 +311,10 @@ exports.updateListing = async (req, res) => {
         return res.status(400).json({ error: "Invalid availability date" });
       }
       updates.availabilityDate = availDate;
+    }
+
+    if (photos !== undefined) {
+      updates.photos = Array.isArray(photos) ? photos : [];
     }
 
     if (requiresReview && item.status === "APPROVED") {

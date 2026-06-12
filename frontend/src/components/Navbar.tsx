@@ -14,23 +14,39 @@ export default function Navbar() {
   const router = useRouter();
 
   useEffect(() => {
+    const cached = localStorage.getItem("nestarrival_user");
+    if (cached) {
+      try {
+        setUser(JSON.parse(cached));
+      } catch (err) {
+        console.error("Failed to parse cached user in Navbar", err);
+      }
+    }
+    setLoading(false);
+
     authApi.me()
       .then((res) => res.data)
       .then((data) => {
         if (data && data.authenticated) {
           setUser(data.user);
+          localStorage.setItem("nestarrival_user", JSON.stringify(data.user));
+        } else {
+          setUser(null);
+          localStorage.removeItem("nestarrival_user");
         }
       })
       .catch(() => {
         setUser(null);
+        localStorage.removeItem("nestarrival_user");
       })
       .finally(() => setLoading(false));
   }, []);
 
   const handleLogout = async () => {
+    localStorage.removeItem("nestarrival_user");
+    setUser(null);
     const res = await authApi.logout();
     if (res.status >= 200 && res.status < 300) {
-      setUser(null);
       router.push("/");
     }
   };
@@ -57,7 +73,8 @@ export default function Navbar() {
         <nav className="hidden md:flex items-center space-x-8 text-xs font-semibold text-[#8a7d6a]">
           <Link href="/about" className="hover:text-[#cfa052] transition-colors">About Us</Link>
           <Link href="/pricing" className="hover:text-[#cfa052] transition-colors">Pricing</Link>
-          <Link href="/contact" className="hover:text-[#cfa052] transition-colors">Contact US</Link>
+          <Link href="/contact" className="hover:text-[#cfa052] transition-colors">Contact Us</Link>
+          <Link href="/partner-with-us" className="hover:text-[#cfa052] transition-colors">Partner With Us</Link>
           
           {loading ? (
             <div className="h-8 w-20 animate-pulse rounded bg-[#eae1d3]/60" />
@@ -126,7 +143,14 @@ export default function Navbar() {
             onClick={() => setMobileMenuOpen(false)}
             className="block text-[#5c544d] hover:text-[#cfa052] py-1 transition-colors"
           >
-            Contact US
+            Contact Us
+          </Link>
+          <Link
+            href="/partner-with-us"
+            onClick={() => setMobileMenuOpen(false)}
+            className="block text-[#5c544d] hover:text-[#cfa052] py-1 transition-colors"
+          >
+            Partner With Us
           </Link>
           
           <hr className="border-[#f4efe6]" />

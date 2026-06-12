@@ -12,4 +12,6 @@ export const adminApi = {
   banUser: (payload: any) => api.post("/admin/users/ban", payload),
   cmsList: () => api.get("/cms"),
   cmsUpdate: (payload: any) => api.put("/cms", payload),
+  subscriptions: () => api.get("/admin/subscriptions"),
+  moderateSubscription: (payload: any) => api.post("/admin/subscriptions/moderate", payload),
 };

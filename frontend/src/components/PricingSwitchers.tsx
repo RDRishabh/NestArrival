@@ -36,7 +36,11 @@ export default function PricingSwitchers({
         ))}
       </div>
 
-      {/* Payment Mode Selector */}
+      {/* 
+        === SUBSCRIBE & SAVE — COMING SOON ===
+        Payment mode selector is temporarily disabled.
+        We will re-enable this once Stripe subscription billing is configured.
+        
       <div className="bg-[#eae1d3]/30 p-1.5 rounded-2xl border border-[#eae1d3] flex items-center gap-1 shadow-sm">
         {[
           { id: "ONETIME", label: "One-Time Payment", badge: "Best Value" },
@@ -64,6 +68,8 @@ export default function PricingSwitchers({
           </button>
         ))}
       </div>
+      ===  END SUBSCRIBE & SAVE  === 
+      */}
     </div>
   );
 }

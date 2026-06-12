@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
 import Logo from "./Logo";
 
 export default function Footer() {
@@ -9,17 +8,11 @@ export default function Footer() {
     { name: "Home", href: "/" },
     { name: "About Us", href: "/about" },
     { name: "How It Works", href: "/#how-it-works" },
-    { name: "Explore Locations", href: "/#explore" },
-    { name: "Verified Listings", href: "/#explore" },
-    { name: "Join Early Access", href: "/signup" },
     { name: "Contact Us", href: "/contact" },
-  ];
-
-  const relocationLinks = [
-    { name: "Student Housing", href: "/signup?type=student" },
-    { name: "Worker Accommodation", href: "/signup?type=worker" },
-    { name: "Shared Living", href: "/signup?type=shared" },
-    { name: "Family Homes", href: "/signup?type=family" },
+    { name: "Founder's Story", href: "/founders-story" },
+    { name: "Partner With Us", href: "/partner-with-us" },
+    { name: "Sign Up", href: "/signup" },
+    { name: "Login", href: "/login" },
   ];
 
   const legalLinks = [
@@ -97,12 +90,12 @@ export default function Footer() {
   return (
     <footer className="border-t border-[#eae1d3]/80 bg-[#fdfbf7] py-16 text-xs text-[#5c544d]">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-12">
-        
+
         {/* Main Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-8 lg:gap-12">
-          
+
           {/* Logo & Brand Details */}
-          <div className="lg:col-span-3 space-y-4">
+          <div className="lg:col-span-4 space-y-4">
             <div className="flex items-center space-x-2">
               <Logo className="h-7 w-7 text-[#2c2724]" />
               <span className="text-lg font-bold tracking-tight text-[#2c2724]">
@@ -128,24 +121,10 @@ export default function Footer() {
           </div>
 
           {/* Platform Links */}
-          <div className="lg:col-span-2 space-y-3">
+          <div className="lg:col-span-3 space-y-3">
             <h4 className="font-extrabold text-[10px] uppercase tracking-wider text-[#2c2724]">Platform</h4>
             <ul className="space-y-2 font-medium text-[#8a7d6a]">
               {platformLinks.map((link) => (
-                <li key={link.name}>
-                  <Link href={link.href} className="hover:text-[#cfa052] transition-colors">
-                    {link.name}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Relocation Support */}
-          <div className="lg:col-span-2 space-y-3">
-            <h4 className="font-extrabold text-[10px] uppercase tracking-wider text-[#2c2724]">Relocation</h4>
-            <ul className="space-y-2 font-medium text-[#8a7d6a]">
-              {relocationLinks.map((link) => (
                 <li key={link.name}>
                   <Link href={link.href} className="hover:text-[#cfa052] transition-colors">
                     {link.name}
@@ -171,28 +150,22 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* Newsletter Section */}
+          {/* Quick Contact */}
           <div className="lg:col-span-3 space-y-3">
-            <h4 className="font-extrabold text-[10px] uppercase tracking-wider text-[#2c2724]">Newsletter</h4>
-            <div className="space-y-3">
-              <p className="text-[11px] text-[#8a7d6a] leading-relaxed">
-                Join the Future of Global Relocation. Get early access updates, relocation insights, new city launches, and accommodation opportunities.
-              </p>
-              <form onSubmit={(e) => e.preventDefault()} className="relative flex items-center">
-                <input
-                  type="email"
-                  placeholder="Enter email..."
-                  required
-                  className="w-full text-[11px] bg-white border border-[#eae1d3] rounded-xl py-2.5 pl-3 pr-10 text-[#2c2724] outline-none focus:border-[#cfa052] shadow-sm"
-                />
-                <button
-                  type="submit"
-                  aria-label="Subscribe"
-                  className="absolute right-1.5 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg bg-[#cfa052] text-white flex items-center justify-center hover:bg-[#b58942] transition-colors"
-                >
-                  <ArrowRight className="h-3.5 w-3.5" />
-                </button>
-              </form>
+            <h4 className="font-extrabold text-[10px] uppercase tracking-wider text-[#2c2724]">Get In Touch</h4>
+            <div className="space-y-3 text-[11px] text-[#8a7d6a]">
+              <div>
+                <span className="font-bold text-[#2c2724] block mb-1">General Support</span>
+                <a href="mailto:hello@nestarrival.com" className="hover:text-[#cfa052] transition-colors">hello@nestarrival.com</a>
+              </div>
+              <div>
+                <span className="font-bold text-[#2c2724] block mb-1">Relocation &amp; Vetting</span>
+                <a href="mailto:support@nestarrival.com" className="hover:text-[#cfa052] transition-colors">support@nestarrival.com</a>
+              </div>
+              <div>
+                <span className="font-bold text-[#2c2724] block mb-1">Partnerships</span>
+                <a href="mailto:partners@nestarrival.com" className="hover:text-[#cfa052] transition-colors">partners@nestarrival.com</a>
+              </div>
             </div>
           </div>
 

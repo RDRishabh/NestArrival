@@ -37,5 +37,7 @@ router.put(
 );
 router.get("/users", requireAuth, requireRole("ADMIN"), ctrl.getUsers);
 router.post("/users/ban", requireAuth, requireRole("ADMIN"), ctrl.banUser);
+router.get("/subscriptions", requireAuth, requireRole("ADMIN"), ctrl.getSubscriptionsQueue);
+router.post("/subscriptions/moderate", requireAuth, requireRole("ADMIN"), ctrl.moderateSubscription);
 
 module.exports = router;
