@@ -360,14 +360,19 @@ exports.getSavedListings = async (req, res) => {
       where: { userId: req.user.id },
       include: {
         listing: {
-          where: { status: "APPROVED" },
           include: {
             owner: { select: { id: true, fullName: true, isVerified: true } },
           },
         },
       },
     });
-    res.json(list.filter((item) => item.listing).map((item) => item.listing));
+    // Filter out archived/non-approved listings in JS (Prisma does not support
+    // where filters on to-one relation includes)
+    res.json(
+      list
+        .filter((item) => item.listing && item.listing.status === "APPROVED")
+        .map((item) => item.listing)
+    );
   } catch (err) {
     return sendServerError(
       res,

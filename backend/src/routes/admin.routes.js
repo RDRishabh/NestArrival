@@ -16,6 +16,7 @@ router.post(
   requireRole("ADMIN"),
   ctrl.processVerification,
 );
+router.get("/listings", requireAuth, requireRole("ADMIN"), ctrl.getListings);
 router.post(
   "/listings/moderate",
   requireAuth,

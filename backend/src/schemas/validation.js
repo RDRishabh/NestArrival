@@ -57,6 +57,27 @@ const resendOtpSchema = z.object({
   email: z.string().email("Invalid email address"),
 });
 
+const forgotPasswordSchema = z.object({
+  email: z.string().email("Invalid email address"),
+});
+
+const resetPasswordSchema = z.object({
+  email: z.string().email("Invalid email address"),
+  otp: z.string().regex(/^\d{6}$/, "OTP must be exactly 6 digits"),
+  newPassword: z
+    .string()
+    .min(8, "Password must be at least 8 characters")
+    .refine((password) => /[A-Z]/.test(password), {
+      message: "Password must contain at least one uppercase letter",
+    })
+    .refine((password) => /[a-z]/.test(password), {
+      message: "Password must contain at least one lowercase letter",
+    })
+    .refine((password) => /[0-9]/.test(password), {
+      message: "Password must contain at least one number",
+    }),
+});
+
 // Listing Schemas
 const listingsQuerySchema = z.object({
   scope: z.enum(["all", "mine", "public"]).optional().default("public"),
@@ -188,6 +209,8 @@ module.exports = {
   verifyOtpSchema,
   googleAuthSchema,
   resendOtpSchema,
+  forgotPasswordSchema,
+  resetPasswordSchema,
 
   // Listing schemas
   listingsQuerySchema,

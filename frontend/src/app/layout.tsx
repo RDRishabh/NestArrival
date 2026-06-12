@@ -22,6 +22,13 @@ const playfairDisplay = Playfair_Display({
 export const metadata: Metadata = {
   title: "NestArrival | Verification-First Housing Platform for Canadian Newcomers",
   description: "Connect safely with verified property owners and secure housing before moving to Canada. Trust-focused, mobile-first, and newcomer-designed.",
+  icons: {
+    icon: [
+      { url: "/icon.svg", type: "image/svg+xml" },
+    ],
+    shortcut: "/icon.svg",
+    apple: "/icon.svg",
+  },
 };
 
 export const viewport = {

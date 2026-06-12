@@ -1,9 +1,11 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ArrowRight, Search } from "lucide-react";
 import { motion } from "framer-motion";
 import TiltCard from "@/components/TiltCard";
+import { authApi } from "@/apis/Authentication/auth";
 
 const staggerContainer = {
   hidden: {},
@@ -15,7 +17,20 @@ const fadeUpItem = {
   visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" as const } },
 };
 
-export default function TrendingHomesSection() {
+interface TrendingHomesSectionProps {
+  user?: any;
+  loading?: boolean;
+}
+
+export default function TrendingHomesSection({ user: propUser, loading: propLoading }: TrendingHomesSectionProps) {
+  const [user, setUser] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    setUser(propUser ?? null);
+    setLoading(!!propLoading);
+  }, [propUser, propLoading]);
+
   const floorPlanPreviews = [
     {
       title: "Charming Chelsea Apartment",
@@ -154,7 +169,7 @@ export default function TrendingHomesSection() {
                         <span className="text-[9px] text-[#8a7d6a] uppercase tracking-wider block">Monthly Rent</span>
                         <span className="font-black text-base text-[#2c2724]">{listing.currency === "GBP" ? "£" : listing.currency === "AED" ? "AED " : "$"}{listing.rent}</span>
                       </div>
-                      <Link href="/signup" className="text-[10px] font-extrabold bg-[#cfa052] hover:bg-[#b58942] text-white px-4 py-2.5 rounded-xl transition-all duration-300 flex items-center gap-1">
+                      <Link href={user ? "/tenant/dashboard" : "/login"} className="text-[10px] font-extrabold bg-[#cfa052] hover:bg-[#b58942] text-white px-4 py-2.5 rounded-xl transition-all duration-300 flex items-center gap-1">
                         Inquire <ArrowRight className="h-3 w-3" />
                       </Link>
                     </div>
@@ -172,7 +187,7 @@ export default function TrendingHomesSection() {
               </div>
               <h3 className="font-serif text-xl font-black text-[#2c2724] mb-2">Looking for more?</h3>
               <p className="text-[11px] text-[#5c544d] max-w-xs mb-6">Create a verified profile to unlock hundreds of exclusive, title-vetted properties globally.</p>
-              <Link href="/signup" className="text-xs font-bold text-[#cfa052] border-b border-[#cfa052] pb-0.5 hover:text-[#b58942] hover:border-[#b58942] transition-colors">
+              <Link href={user ? "/tenant/dashboard" : "/login"} className="text-xs font-bold text-[#cfa052] border-b border-[#cfa052] pb-0.5 hover:text-[#b58942] hover:border-[#b58942] transition-colors">
                 View All Properties
               </Link>
             </TiltCard>

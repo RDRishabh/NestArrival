@@ -51,22 +51,28 @@ export default function FoundersMessageSection() {
           
           <div className="mt-12 flex flex-col sm:flex-row items-start sm:items-center justify-between border-t border-[#eae1d3] pt-8 gap-6">
             <div className="flex items-center gap-4">
-              <div className="h-16 w-16 rounded-full bg-[#eae1d3] overflow-hidden border-2 border-white shadow-md flex items-center justify-center relative">
-                <img src="/images/royal_singh.png" alt="Royal Singh" className="absolute inset-0 h-full w-full object-cover z-10" onError={(e) => e.currentTarget.style.display = 'none'} />
-                <span className="text-[#cfa052] font-bold text-xl relative z-0">RS</span>
+              <div className="h-16 w-16 rounded-full bg-[#eae1d3] border-2 border-white shadow-md flex items-center justify-center shrink-0">
+                <span className="text-[#cfa052] font-bold text-xl">RS</span>
               </div>
               <div>
                 <p className="font-extrabold text-[#2c2724] text-lg">Royal Singh</p>
-                <p className="text-[11px] text-[#8a7d6a] font-bold uppercase tracking-wider">Founder, NestArrival</p>
+                <p className="text-[11px] text-[#8a7d6a] font-bold uppercase tracking-wider">Founder &amp; CEO, NestArrival</p>
               </div>
             </div>
-            <a href="#" className="h-10 w-10 rounded-full bg-white border border-[#eae1d3] flex items-center justify-center text-[#8a7d6a] hover:text-[#0a66c2] hover:border-[#0a66c2] transition-colors shadow-sm shrink-0">
-              <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z" />
-                <rect x="2" y="9" width="4" height="12" />
-                <circle cx="4" cy="4" r="2" />
-              </svg>
-            </a>
+            <div className="flex items-center gap-3 shrink-0">
+              <span className="text-[11px] text-[#8a7d6a] font-medium">Connect on LinkedIn</span>
+              <a
+                href="https://www.linkedin.com/in/royal-singh/"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Royal Singh on LinkedIn"
+                className="h-10 w-10 rounded-full bg-white border border-[#eae1d3] flex items-center justify-center text-[#8a7d6a] hover:text-[#0a66c2] hover:border-[#0a66c2] transition-colors shadow-sm cursor-pointer"
+              >
+                <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M19 0H5a5 5 0 0 0-5 5v14a5 5 0 0 0 5 5h14a5 5 0 0 0 5-5V5a5 5 0 0 0-5-5zM8 19H5V8h3v11zM6.5 6.73a1.77 1.77 0 1 1 0-3.54 1.77 1.77 0 0 1 0 3.54zM20 19h-3v-5.6c0-3.37-4-3.12-4 0V19h-3V8h3v1.77C14.4 7.46 20 7.3 20 12.7V19z" />
+                </svg>
+              </a>
+            </div>
           </div>
         </motion.div>
       </div>

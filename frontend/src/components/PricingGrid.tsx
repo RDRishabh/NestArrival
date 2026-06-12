@@ -91,7 +91,7 @@ export default function PricingGrid({ currency, paymentMode }: PricingGridProps)
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.1 * (idx + 1) }}
-            className={`bg-white p-6 rounded-2xl flex flex-col justify-between border relative transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 ${
+            className={`bg-white p-6 rounded-2xl flex flex-col justify-between border relative transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 overflow-visible ${
               plan.isFeatured 
                 ? "border-[#cfa052] bg-[#fdfaf2]/50 shadow-[0_10px_35px_rgba(207,160,82,0.08)]" 
                 : "border-[#eae1d3] bg-white hover:border-slate-300 shadow-md"
@@ -146,21 +146,21 @@ export default function PricingGrid({ currency, paymentMode }: PricingGridProps)
 
               {/* Plan Features */}
               <ul className="mt-6 space-y-3.5 text-[#5c544d] leading-normal pt-4 border-t border-[#f4efe6]">
-                <li className="flex items-start space-x-2">
+                <li className="flex items-start space-x-2 relative overflow-visible">
                   <Check className="h-4 w-4 text-[#cfa052] flex-shrink-0 mt-0.5" />
-                  <div className="space-y-0.5">
-                    <span className="font-bold flex items-center gap-1.5">
+                  <div className="space-y-0.5 relative overflow-visible pr-6">
+                    <span className="font-bold flex items-center gap-1.5 flex-wrap relative">
                       {plan.approachesLimit === -1 ? (
                         "Unlimited Owner Contacts"
                       ) : (
                         <>
                           <span>Up to {plan.approachesLimit} owner approaches</span>
-                          <div className="group relative inline-block cursor-help ml-1">
+                          <div className="group relative inline-flex cursor-help ml-1 align-middle" style={{ zIndex: 20 }}>
                             <HelpCircle className="h-3.5 w-3.5 text-[#aba296] hover:text-[#cfa052] transition-colors" />
                             {/* Premium Tooltip */}
-                            <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-56 bg-[#2c2724] text-[#fdfbf7] text-[10px] rounded-lg p-2.5 shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 pointer-events-none leading-relaxed font-normal normal-case">
+                            <div className="pointer-events-none absolute left-0 top-full mt-3 w-56 max-w-[calc(100vw-2rem)] bg-[#2c2724] text-[#fdfbf7] text-[10px] rounded-lg p-2.5 shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 leading-relaxed font-normal normal-case" style={{ zIndex: 9999 }}>
                               Each approach means you can message one verified property owner. If they do not reply within 7 days, that counts as an unanswered approach and is eligible for refund review.
-                              <div className="absolute top-full left-1/2 transform -translate-x-1/2 -mt-1 border-4 border-transparent border-t-[#2c2724]" />
+                              <div className="absolute bottom-full left-4 -mb-1 border-4 border-transparent border-b-[#2c2724]" />
                             </div>
                           </div>
                         </>

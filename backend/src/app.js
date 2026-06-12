@@ -49,6 +49,12 @@ if (!fs.existsSync(uploadDir)) {
 }
 
 const app = express();
+
+app.use((req, res, next) => {
+  console.log(`[Backend Request] ${req.method} ${req.url} - Received at ${new Date().toISOString()}`);
+  next();
+});
+
 if (process.env.NODE_ENV === "production") {
   app.set("trust proxy", 1);
 }

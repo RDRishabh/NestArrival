@@ -5,15 +5,15 @@ import { motion } from "framer-motion";
 export default function AboutHeader() {
   return (
     <div className="text-center mb-20 space-y-4">
-      <motion.span 
+      <motion.span
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="text-[10px] text-[#cfa052] font-extrabold uppercase tracking-widest bg-[#eae1d3] px-3 py-1.5 rounded-full border border-[#eae1d3]/50 inline-block shadow-sm"
+        className="text-[11px] text-[#cfa052] font-extrabold uppercase tracking-widest px-3 py-1.5 rounded-full border border-[#eae1d3]/50 inline-block shadow-sm"
       >
         Our Mission
       </motion.span>
-      <motion.h1 
+      <motion.h1
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.1 }}
@@ -21,7 +21,7 @@ export default function AboutHeader() {
       >
         Redefining Global Accommodation for Modern Relocation.
       </motion.h1>
-      <motion.p 
+      <motion.p
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.2 }}
