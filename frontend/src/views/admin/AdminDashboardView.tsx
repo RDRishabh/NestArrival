@@ -73,7 +73,7 @@ export default function AdminDashboardView() {
     if (currentUser) {
       loadTabData();
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab, currentUser]);
 
   useEffect(() => {
@@ -388,11 +388,10 @@ export default function AdminDashboardView() {
   ) => (
     <button
       onClick={() => { setActiveTab(tab); setMobileMenuOpen(false); }}
-      className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-        activeTab === tab
-          ? "bg-[#cfa052]/10 text-[#cfa052] border-l-2 border-[#cfa052]"
-          : "text-slate-500 hover:text-slate-900 hover:bg-slate-100"
-      }`}
+      className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${activeTab === tab
+        ? "bg-[#cfa052]/10 text-[#cfa052] border-l-2 border-[#cfa052]"
+        : "text-slate-500 hover:text-slate-900 hover:bg-slate-100"
+        }`}
     >
       <Icon className="h-4 w-4" />
       <span>{label}</span>
@@ -407,7 +406,7 @@ export default function AdminDashboardView() {
         <div className="space-y-8">
           <Link href="/" className="flex items-center space-x-2 group">
             <Logo className="h-6 w-6 text-[#cfa052] transition-transform duration-300 group-hover:scale-110" />
-            <span className="text-lg font-bold tracking-tight text-[#2c2724]">
+            <span className="text-lg font-bold tracking-tight text-[#2c2724] font-serif">
               Nest<span className="text-[#cfa052]">Arrival</span>
             </span>
           </Link>
@@ -448,7 +447,7 @@ export default function AdminDashboardView() {
       <header className="md:hidden flex items-center justify-between w-full h-16 fixed top-0 left-0 bg-white border-b border-slate-200 z-30 px-4 shadow-sm">
         <Link href="/" className="flex items-center space-x-2">
           <Logo className="h-5 w-5 text-[#cfa052]" />
-          <span className="text-base font-bold tracking-tight text-[#2c2724]">
+          <span className="text-base font-bold tracking-tight text-[#2c2724] font-serif">
             Nest<span className="text-[#cfa052]">Arrival</span>
           </span>
         </Link>
@@ -679,10 +678,10 @@ export default function AdminDashboardView() {
                   {loadingVerifications ? (
                     <div className="flex justify-center py-16"><Loader2 className="h-8 w-8 animate-spin text-[#cfa052]" /></div>
                   ) : verifications.filter(req =>
-                      verificationsShowHistory
-                        ? (req.user?.verificationStatus === "VERIFIED" || req.user?.verificationStatus === "REJECTED")
-                        : req.user?.verificationStatus === "PENDING_VERIFICATION"
-                    ).length === 0 ? (
+                    verificationsShowHistory
+                      ? (req.user?.verificationStatus === "VERIFIED" || req.user?.verificationStatus === "REJECTED")
+                      : req.user?.verificationStatus === "PENDING_VERIFICATION"
+                  ).length === 0 ? (
                     <div className="text-center py-16 bg-white border border-slate-200 rounded-xl italic text-slate-400">
                       No matching verification applications found in queue.
                     </div>
@@ -701,11 +700,10 @@ export default function AdminDashboardView() {
                                 <span className="font-bold text-sm text-slate-900">{req.user?.fullName}</span>
                                 <span className="text-slate-400 ml-2">({req.user?.email ?? "—"})</span>
                               </div>
-                              <span className={`px-2 py-0.5 rounded-lg font-bold uppercase text-[10px] ${
-                                req.user?.role === "TENANT"
-                                  ? "bg-[#cfa052]/10 border border-[#cfa052]/20 text-[#cfa052]"
-                                  : "bg-slate-100 border border-slate-200 text-slate-700"
-                              }`}>
+                              <span className={`px-2 py-0.5 rounded-lg font-bold uppercase text-[10px] ${req.user?.role === "TENANT"
+                                ? "bg-[#cfa052]/10 border border-[#cfa052]/20 text-[#cfa052]"
+                                : "bg-slate-100 border border-slate-200 text-slate-700"
+                                }`}>
                                 {req.user?.role}
                               </span>
                             </div>
@@ -765,11 +763,10 @@ export default function AdminDashboardView() {
                                 </div>
                               ) : (
                                 <div className="flex flex-col items-center justify-center bg-slate-50 border border-slate-200 p-6 rounded-xl space-y-2 text-center">
-                                  <span className={`text-[10px] font-extrabold px-3 py-1 rounded-full uppercase tracking-wider ${
-                                    req.user?.verificationStatus === "VERIFIED"
-                                      ? "bg-emerald-50 border border-emerald-200 text-emerald-700"
-                                      : "bg-red-50 border border-red-200 text-red-600"
-                                  }`}>
+                                  <span className={`text-[10px] font-extrabold px-3 py-1 rounded-full uppercase tracking-wider ${req.user?.verificationStatus === "VERIFIED"
+                                    ? "bg-emerald-50 border border-emerald-200 text-emerald-700"
+                                    : "bg-red-50 border border-red-200 text-red-600"
+                                    }`}>
                                     Status: {req.user?.verificationStatus}
                                   </span>
                                   {req.adminNotes && (
@@ -809,10 +806,10 @@ export default function AdminDashboardView() {
                   {loadingListingsQueue ? (
                     <div className="flex justify-center py-16"><Loader2 className="h-8 w-8 animate-spin text-[#cfa052]" /></div>
                   ) : listingsQueue.filter(item =>
-                      listingsShowHistory
-                        ? (item.status === "APPROVED" || item.status === "REJECTED")
-                        : item.status === "PENDING_REVIEW"
-                    ).length === 0 ? (
+                    listingsShowHistory
+                      ? (item.status === "APPROVED" || item.status === "REJECTED")
+                      : item.status === "PENDING_REVIEW"
+                  ).length === 0 ? (
                     <div className="text-center py-16 bg-white border border-slate-200 rounded-xl italic text-slate-400">
                       No listings found in this category.
                     </div>
@@ -831,13 +828,12 @@ export default function AdminDashboardView() {
                                 <span className="font-bold text-sm text-slate-900">{item.title}</span>
                                 <span className="text-slate-400 ml-2">(City: {item.city})</span>
                               </div>
-                              <span className={`px-2 py-0.5 rounded-lg font-bold uppercase text-[10px] ${
-                                item.status === "APPROVED"
-                                  ? "bg-emerald-50 border border-emerald-200 text-emerald-700"
-                                  : item.status === "PENDING_REVIEW"
-                                    ? "bg-amber-50 border border-amber-200 text-amber-700"
-                                    : "bg-red-50 border border-red-200 text-red-600"
-                              }`}>
+                              <span className={`px-2 py-0.5 rounded-lg font-bold uppercase text-[10px] ${item.status === "APPROVED"
+                                ? "bg-emerald-50 border border-emerald-200 text-emerald-700"
+                                : item.status === "PENDING_REVIEW"
+                                  ? "bg-amber-50 border border-amber-200 text-amber-700"
+                                  : "bg-red-50 border border-red-200 text-red-600"
+                                }`}>
                                 {item.status}
                               </span>
                             </div>
@@ -909,13 +905,12 @@ export default function AdminDashboardView() {
                               <span className="font-bold text-sm text-slate-900">{req.user?.fullName}</span>
                               <span className="text-slate-400 ml-2">({req.user?.email ?? "—"})</span>
                             </div>
-                            <span className={`px-2 py-0.5 rounded-lg font-bold uppercase text-[10px] ${
-                              req.status === "APPROVED"
-                                ? "bg-emerald-50 border border-emerald-200 text-emerald-700"
-                                : req.status === "PENDING"
-                                  ? "bg-amber-50 border border-amber-200 text-amber-700"
-                                  : "bg-red-50 border border-red-200 text-red-600"
-                            }`}>
+                            <span className={`px-2 py-0.5 rounded-lg font-bold uppercase text-[10px] ${req.status === "APPROVED"
+                              ? "bg-emerald-50 border border-emerald-200 text-emerald-700"
+                              : req.status === "PENDING"
+                                ? "bg-amber-50 border border-amber-200 text-amber-700"
+                                : "bg-red-50 border border-red-200 text-red-600"
+                              }`}>
                               {req.status}
                             </span>
                           </div>
@@ -932,11 +927,10 @@ export default function AdminDashboardView() {
                                   <p>- Owner replies received: <strong>{req.analytics?.ownerRepliesReceived}</strong></p>
                                   <div className="mt-2 flex items-center space-x-2">
                                     <span>Auto Eligibility:</span>
-                                    <span className={`font-bold uppercase px-2 py-0.5 rounded text-[10px] ${
-                                      req.analytics?.isEligible
-                                        ? "text-emerald-700 bg-emerald-50 border border-emerald-200"
-                                        : "text-red-600 bg-red-50 border border-red-200"
-                                    }`}>
+                                    <span className={`font-bold uppercase px-2 py-0.5 rounded text-[10px] ${req.analytics?.isEligible
+                                      ? "text-emerald-700 bg-emerald-50 border border-emerald-200"
+                                      : "text-red-600 bg-red-50 border border-red-200"
+                                      }`}>
                                       {req.analytics?.isEligible ? "ELIGIBLE" : "INELIGIBLE"}
                                     </span>
                                   </div>
@@ -985,11 +979,10 @@ export default function AdminDashboardView() {
                         <button
                           key={page.id}
                           onClick={() => handleSelectCmsPage(page)}
-                          className={`w-full text-left p-4 flex flex-col gap-1 transition-all cursor-pointer ${
-                            selectedCmsPage?.id === page.id
-                              ? "bg-[#cfa052]/5 border-l-2 border-[#cfa052] text-[#cfa052]"
-                              : "hover:bg-slate-50 text-slate-600"
-                          }`}
+                          className={`w-full text-left p-4 flex flex-col gap-1 transition-all cursor-pointer ${selectedCmsPage?.id === page.id
+                            ? "bg-[#cfa052]/5 border-l-2 border-[#cfa052] text-[#cfa052]"
+                            : "hover:bg-slate-50 text-slate-600"
+                            }`}
                         >
                           <span className="font-bold text-slate-800">{page.title}</span>
                           <span className="text-[9px] text-slate-400 font-extrabold uppercase tracking-wider">ID: {page.id}</span>
@@ -1097,13 +1090,12 @@ export default function AdminDashboardView() {
                                   {u.isBanned && (
                                     <span className="bg-red-50 border border-red-200 text-red-600 px-2 py-0.5 rounded text-[8px] font-extrabold uppercase">Banned</span>
                                   )}
-                                  <span className={`px-2 py-0.5 rounded text-[8px] font-bold uppercase ${
-                                    u.verificationStatus === "VERIFIED"
-                                      ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                                      : u.verificationStatus === "PENDING_VERIFICATION"
-                                        ? "bg-amber-50 text-amber-700 border border-amber-200"
-                                        : "bg-slate-100 text-slate-500 border border-slate-200"
-                                  }`}>
+                                  <span className={`px-2 py-0.5 rounded text-[8px] font-bold uppercase ${u.verificationStatus === "VERIFIED"
+                                    ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                                    : u.verificationStatus === "PENDING_VERIFICATION"
+                                      ? "bg-amber-50 text-amber-700 border border-amber-200"
+                                      : "bg-slate-100 text-slate-500 border border-slate-200"
+                                    }`}>
                                     {u.verificationStatus ?? "UNVERIFIED"}
                                   </span>
                                 </div>
@@ -1141,13 +1133,12 @@ export default function AdminDashboardView() {
                                   {u.isBanned && (
                                     <span className="bg-red-50 border border-red-200 text-red-600 px-2 py-0.5 rounded text-[8px] font-extrabold uppercase">Banned</span>
                                   )}
-                                  <span className={`px-2 py-0.5 rounded text-[8px] font-bold uppercase ${
-                                    u.verificationStatus === "VERIFIED"
-                                      ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                                      : u.verificationStatus === "PENDING_VERIFICATION"
-                                        ? "bg-amber-50 text-amber-700 border border-amber-200"
-                                        : "bg-slate-100 text-slate-500 border border-slate-200"
-                                  }`}>
+                                  <span className={`px-2 py-0.5 rounded text-[8px] font-bold uppercase ${u.verificationStatus === "VERIFIED"
+                                    ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                                    : u.verificationStatus === "PENDING_VERIFICATION"
+                                      ? "bg-amber-50 text-amber-700 border border-amber-200"
+                                      : "bg-slate-100 text-slate-500 border border-slate-200"
+                                    }`}>
                                     {u.verificationStatus ?? "UNVERIFIED"}
                                   </span>
                                 </div>
@@ -1187,10 +1178,10 @@ export default function AdminDashboardView() {
                   {loadingSubscriptionsQueue ? (
                     <div className="flex justify-center py-16"><Loader2 className="h-8 w-8 animate-spin text-[#cfa052]" /></div>
                   ) : subscriptionsQueue.filter(sub =>
-                      subscriptionsShowHistory
-                        ? (sub.status === "APPROVED" || sub.status === "REJECTED")
-                        : sub.status === "PENDING"
-                    ).length === 0 ? (
+                    subscriptionsShowHistory
+                      ? (sub.status === "APPROVED" || sub.status === "REJECTED")
+                      : sub.status === "PENDING"
+                  ).length === 0 ? (
                     <div className="text-center py-16 bg-white border border-slate-200 rounded-xl italic text-slate-400">
                       No subscriptions found in this category.
                     </div>
@@ -1209,13 +1200,12 @@ export default function AdminDashboardView() {
                                 <span className="font-bold text-sm text-slate-900">{sub.user?.fullName}</span>
                                 <span className="text-slate-400 ml-2">({sub.user?.email ?? "—"})</span>
                               </div>
-                              <span className={`px-2 py-0.5 rounded-lg font-bold uppercase text-[10px] ${
-                                sub.status === "APPROVED"
-                                  ? "bg-emerald-50 border border-emerald-200 text-emerald-700"
-                                  : sub.status === "PENDING"
-                                    ? "bg-amber-50 border border-amber-200 text-amber-700"
-                                    : "bg-red-50 border border-red-200 text-red-600"
-                              }`}>
+                              <span className={`px-2 py-0.5 rounded-lg font-bold uppercase text-[10px] ${sub.status === "APPROVED"
+                                ? "bg-emerald-50 border border-emerald-200 text-emerald-700"
+                                : sub.status === "PENDING"
+                                  ? "bg-amber-50 border border-amber-200 text-amber-700"
+                                  : "bg-red-50 border border-red-200 text-red-600"
+                                }`}>
                                 {sub.status}
                               </span>
                             </div>
@@ -1256,11 +1246,10 @@ export default function AdminDashboardView() {
                                 </div>
                               ) : (
                                 <div className="flex flex-col items-center justify-center bg-slate-50 border border-slate-200 p-6 rounded-xl space-y-2 text-center">
-                                  <span className={`text-[10px] font-extrabold px-3 py-1 rounded-full uppercase tracking-wider ${
-                                    sub.status === "APPROVED"
-                                      ? "bg-emerald-50 border border-emerald-200 text-emerald-700"
-                                      : "bg-red-50 border border-red-200 text-red-600"
-                                  }`}>
+                                  <span className={`text-[10px] font-extrabold px-3 py-1 rounded-full uppercase tracking-wider ${sub.status === "APPROVED"
+                                    ? "bg-emerald-50 border border-emerald-200 text-emerald-700"
+                                    : "bg-red-50 border border-red-200 text-red-600"
+                                    }`}>
                                     Result: {sub.status}
                                   </span>
                                   <p className="text-slate-400 text-[10px] max-w-xs">Processed subscription request.</p>

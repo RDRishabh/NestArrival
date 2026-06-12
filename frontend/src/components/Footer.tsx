@@ -97,9 +97,9 @@ export default function Footer() {
           {/* Logo & Brand Details */}
           <div className="lg:col-span-4 space-y-4">
             <div className="flex items-center space-x-2">
-              <Logo className="h-7 w-7 text-[#2c2724]" />
-              <span className="text-lg font-bold tracking-tight text-[#2c2724]">
-                Nest<span className="text-[#2c2724]">Arrival</span>
+              <Logo className="h-7 w-7 text-[#cfa052]" />
+              <span className="text-lg font-bold tracking-tight text-[#2c2724] font-serif">
+                Nest<span className="text-[#cfa052]">Arrival</span>
               </span>
             </div>
             <p className="text-[11px] text-[#8a7d6a] leading-relaxed">

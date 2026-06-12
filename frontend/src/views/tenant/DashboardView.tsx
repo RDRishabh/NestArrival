@@ -4,9 +4,9 @@ import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { io } from "socket.io-client";
-import { 
-  Search, MessageSquare, Bookmark, CreditCard, ShieldCheck, 
-  MapPin, Bed, Bath, Calendar, ArrowRight, UserCheck, AlertTriangle, 
+import {
+  Search, MessageSquare, Bookmark, CreditCard, ShieldCheck,
+  MapPin, Bed, Bath, Calendar, ArrowRight, UserCheck, AlertTriangle,
   Send, RefreshCw, Sparkles, CheckCircle, Ban, Loader2, Home, X, LogOut, Menu
 } from "lucide-react";
 import { SUBSCRIPTION_PLANS } from "@/lib/constants";
@@ -17,13 +17,13 @@ const socketServerUrl = process.env.NEXT_PUBLIC_BACKEND_ORIGIN || "http://localh
 
 export default function DashboardView() {
   const router = useRouter();
-  
+
   // App states
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [loadingUser, setLoadingUser] = useState(true);
   const [activeTab, setActiveTab] = useState<"search" | "chat" | "saved" | "billing">("search");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  
+
   // Search & Filter listings states
   const [listings, setListings] = useState<any[]>([]);
   const [loadingListings, setLoadingListings] = useState(false);
@@ -316,8 +316,8 @@ export default function DashboardView() {
       setSelectedListing(null);
       setFirstMessageContent("");
       await fetchChatRooms();
-      await fetchSession(); 
-      
+      await fetchSession();
+
       const createdRoomId = data.roomId;
       const targetRoom = chatRooms.find((r) => r.id === createdRoomId);
       if (targetRoom) {
@@ -328,7 +328,7 @@ export default function DashboardView() {
           if (freshRoom) setActiveRoom(freshRoom);
         });
       }
-      
+
       setActiveTab("chat");
     } catch (err) {
       console.error(err);
@@ -362,7 +362,7 @@ export default function DashboardView() {
 
       setPurchaseSuccessMsg(data.message);
       setPurchaseUrgent(false);
-      await fetchSession(); 
+      await fetchSession();
       setProcessingPurchase(false);
     } catch (e) {
       setBillingError("Connection failed");
@@ -373,7 +373,7 @@ export default function DashboardView() {
   const handleSubmitRefund = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!currentUser?.subscription) return;
-    
+
     setSubmittingRefund(true);
     setRefundSuccessMsg("");
     setBillingError("");
@@ -428,7 +428,7 @@ export default function DashboardView() {
             <h2 className="text-lg font-bold text-[#0f172a] uppercase tracking-tight">Access Prohibited</h2>
             <p className="text-[10px] text-red-500 uppercase tracking-widest font-extrabold mt-1">Banned Account</p>
           </div>
-          
+
           <div className="bg-[#fdfbf7] border border-[#f4efe6] p-4 rounded-xl text-left leading-relaxed text-slate-650 space-y-1.5">
             <strong className="text-[#352f2a]">Suspicion Notice:</strong>
             <p className="italic">"{currentUser.banReason || "Violation of Community Safety Guidelines."}"</p>
@@ -437,7 +437,7 @@ export default function DashboardView() {
           <p className="text-[#8a7d6a] leading-normal">
             NestArrival enforces a zero-tolerance policy against fraudulent documentation, scam listings, or threat behaviors. For appeals or data claims, contact administration at:
           </p>
-          
+
           <div className="pt-2">
             <a href="mailto:support@nestarrival.ca" className="inline-block text-[#cfa052] border border-[#cfa052]/20 bg-[#cfa052]/5 px-5 py-2.5 rounded-lg font-bold hover:bg-[#cfa052]/10 transition-colors">
               support@nestarrival.ca
@@ -457,29 +457,28 @@ export default function DashboardView() {
 
   return (
     <div className="light-theme-dashboard flex min-h-screen bg-content-dark text-[#f5f5f7]">
-      
+
       {/* 1. Desktop Left Sidebar */}
       <aside className="hidden md:flex flex-col w-64 fixed inset-y-0 left-0 bg-sidebar-dark border-r border-contrast-dark z-30 p-6 justify-between">
         <div className="space-y-8">
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-2 group">
-            <Logo className="h-6 w-6 text-[#d4ff4d] transition-transform duration-300 group-hover:scale-110" />
-            <span className="text-lg font-bold tracking-tight text-white">
-              Nest<span className="text-[#d4ff4d]">Arrival</span>
+            <Logo className="h-6 w-6 text-[#cfa052] transition-transform duration-300 group-hover:scale-110" />
+            <span className="text-lg font-bold tracking-tight text-white font-serif">
+              Nest<span className="text-[#cfa052]">Arrival</span>
             </span>
           </Link>
 
           {/* Navigation Tab Menu */}
           <div className="space-y-1">
             <span className="text-[9px] font-extrabold text-zinc-500 uppercase tracking-wider block px-2.5 mb-2">TENANT PORTAL</span>
-            
+
             <button
               onClick={() => setActiveTab("search")}
-              className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                activeTab === "search"
-                  ? "bg-[#d4ff4d]/5 text-[#d4ff4d] border-l-2 border-[#d4ff4d]"
-                  : "text-zinc-400 hover:text-white hover:bg-zinc-900/30"
-              }`}
+              className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${activeTab === "search"
+                ? "bg-[#d4ff4d]/5 text-[#d4ff4d] border-l-2 border-[#d4ff4d]"
+                : "text-zinc-400 hover:text-white hover:bg-zinc-900/30"
+                }`}
             >
               <Search className="h-4 w-4" />
               <span>Search Properties</span>
@@ -487,11 +486,10 @@ export default function DashboardView() {
 
             <button
               onClick={() => setActiveTab("chat")}
-              className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                activeTab === "chat"
-                  ? "bg-[#d4ff4d]/5 text-[#d4ff4d] border-l-2 border-[#d4ff4d]"
-                  : "text-zinc-400 hover:text-white hover:bg-zinc-900/30"
-              }`}
+              className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${activeTab === "chat"
+                ? "bg-[#d4ff4d]/5 text-[#d4ff4d] border-l-2 border-[#d4ff4d]"
+                : "text-zinc-400 hover:text-white hover:bg-zinc-900/30"
+                }`}
             >
               <div className="flex items-center space-x-3">
                 <MessageSquare className="h-4 w-4" />
@@ -506,11 +504,10 @@ export default function DashboardView() {
 
             <button
               onClick={() => setActiveTab("saved")}
-              className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                activeTab === "saved"
-                  ? "bg-[#d4ff4d]/5 text-[#d4ff4d] border-l-2 border-[#d4ff4d]"
-                  : "text-zinc-400 hover:text-white hover:bg-zinc-900/30"
-              }`}
+              className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${activeTab === "saved"
+                ? "bg-[#d4ff4d]/5 text-[#d4ff4d] border-l-2 border-[#d4ff4d]"
+                : "text-zinc-400 hover:text-white hover:bg-zinc-900/30"
+                }`}
             >
               <div className="flex items-center space-x-3">
                 <Bookmark className="h-4 w-4" />
@@ -525,11 +522,10 @@ export default function DashboardView() {
 
             <button
               onClick={() => setActiveTab("billing")}
-              className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                activeTab === "billing"
-                  ? "bg-[#d4ff4d]/5 text-[#d4ff4d] border-l-2 border-[#d4ff4d]"
-                  : "text-zinc-400 hover:text-white hover:bg-zinc-900/30"
-              }`}
+              className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${activeTab === "billing"
+                ? "bg-[#d4ff4d]/5 text-[#d4ff4d] border-l-2 border-[#d4ff4d]"
+                : "text-zinc-400 hover:text-white hover:bg-zinc-900/30"
+                }`}
             >
               <CreditCard className="h-4 w-4" />
               <span>Billing & Refunds</span>
@@ -562,9 +558,9 @@ export default function DashboardView() {
       {/* 2. Mobile Header Bar */}
       <header className="md:hidden flex items-center justify-between w-full h-16 fixed top-0 left-0 bg-sidebar-dark border-b border-contrast-dark z-30 px-4">
         <Link href="/" className="flex items-center space-x-2">
-          <Logo className="h-5 w-5 text-[#d4ff4d]" />
-          <span className="text-base font-bold tracking-tight text-white">
-            Nest<span className="text-[#d4ff4d]">Arrival</span>
+          <Logo className="h-5 w-5 text-[#cfa052]" />
+          <span className="text-base font-bold tracking-tight text-white font-serif">
+            Nest<span className="text-[#cfa052]">Arrival</span>
           </span>
         </Link>
         <button
@@ -598,18 +594,16 @@ export default function DashboardView() {
                 <div className="space-y-1">
                   <button
                     onClick={() => { setActiveTab("search"); setMobileMenuOpen(false); }}
-                    className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-xs font-bold ${
-                      activeTab === "search" ? "bg-[#d4ff4d]/5 text-[#d4ff4d]" : "text-zinc-400"
-                    }`}
+                    className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-xs font-bold ${activeTab === "search" ? "bg-[#d4ff4d]/5 text-[#d4ff4d]" : "text-zinc-400"
+                      }`}
                   >
                     <Search className="h-4 w-4" />
                     <span>Search Properties</span>
                   </button>
                   <button
                     onClick={() => { setActiveTab("chat"); setMobileMenuOpen(false); }}
-                    className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-bold ${
-                      activeTab === "chat" ? "bg-[#d4ff4d]/5 text-[#d4ff4d]" : "text-zinc-400"
-                    }`}
+                    className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-bold ${activeTab === "chat" ? "bg-[#d4ff4d]/5 text-[#d4ff4d]" : "text-zinc-400"
+                      }`}
                   >
                     <div className="flex items-center space-x-3">
                       <MessageSquare className="h-4 w-4" />
@@ -619,9 +613,8 @@ export default function DashboardView() {
                   </button>
                   <button
                     onClick={() => { setActiveTab("saved"); setMobileMenuOpen(false); }}
-                    className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-bold ${
-                      activeTab === "saved" ? "bg-[#d4ff4d]/5 text-[#d4ff4d]" : "text-zinc-400"
-                    }`}
+                    className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-bold ${activeTab === "saved" ? "bg-[#d4ff4d]/5 text-[#d4ff4d]" : "text-zinc-400"
+                      }`}
                   >
                     <div className="flex items-center space-x-3">
                       <Bookmark className="h-4 w-4" />
@@ -631,16 +624,15 @@ export default function DashboardView() {
                   </button>
                   <button
                     onClick={() => { setActiveTab("billing"); setMobileMenuOpen(false); }}
-                    className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-xs font-bold ${
-                      activeTab === "billing" ? "bg-[#d4ff4d]/5 text-[#d4ff4d]" : "text-zinc-400"
-                    }`}
+                    className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-xs font-bold ${activeTab === "billing" ? "bg-[#d4ff4d]/5 text-[#d4ff4d]" : "text-zinc-400"
+                      }`}
                   >
                     <CreditCard className="h-4 w-4" />
                     <span>Billing & Refunds</span>
                   </button>
                 </div>
               </div>
-              
+
               <div className="space-y-4 pt-4 border-t border-zinc-900">
                 <div className="px-2">
                   <p className="text-xs font-bold text-white truncate">{currentUser.fullName}</p>
@@ -662,10 +654,10 @@ export default function DashboardView() {
       {/* 3. Right Content Pane */}
       <div className="flex-grow md:pl-64 flex flex-col min-h-screen bg-content-dark pt-16 md:pt-0">
         <div className="flex-grow p-6 md:p-10 relative z-10">
-          
+
           {/* Verification Alert Banners */}
           {!isVerified && (
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               className={`mb-6 rounded-xl border p-4 text-xs shadow-sm flex items-start space-x-3 bg-card-dark border-contrast-dark`}
@@ -673,18 +665,18 @@ export default function DashboardView() {
               <AlertTriangle className="h-5 w-5 text-[#d4ff4d] flex-shrink-0" />
               <div className="space-y-1">
                 <p className="font-bold text-white">
-                  {hasPendingVerification 
-                    ? "Verification Application Pending Audit" 
-                    : isRejected 
-                    ? "Verification Application Rejected" 
-                    : "Verification & Onboarding Incomplete"}
+                  {hasPendingVerification
+                    ? "Verification Application Pending Audit"
+                    : isRejected
+                      ? "Verification Application Rejected"
+                      : "Verification & Onboarding Incomplete"}
                 </p>
                 <p className="text-zinc-400">
-                  {hasPendingVerification 
+                  {hasPendingVerification
                     ? "Our administrator team is auditing your residency details and visa permits. Listing searches are active, but messaging property owners requires verification approval."
                     : isRejected
-                    ? "Your document uploads did not pass our checks. Please verify your details or submit legal proofs at our Help Center."
-                    : "NestArrival enforces a verification-first safety model. You must complete the guided verification checklist to approach property owners."}
+                      ? "Your document uploads did not pass our checks. Please verify your details or submit legal proofs at our Help Center."
+                      : "NestArrival enforces a verification-first safety model. You must complete the guided verification checklist to approach property owners."}
                 </p>
                 {!hasPendingVerification && (
                   <button
@@ -788,87 +780,86 @@ export default function DashboardView() {
                       {listings.map((item) => {
                         const isSaved = savedListings.some((s) => s.id === item.id);
                         return (
-                        <div key={item.id} className="bg-card-dark border border-contrast-dark hover:border-[#cfa052]/30 hover:shadow-[0_0_15px_rgba(207,160,82,0.05)] transition-all flex flex-col justify-between overflow-hidden rounded-xl h-full">
-                          {/* Placeholder image representation */}
-                          <div className="h-44 bg-zinc-950 flex items-center justify-center relative border-b border-contrast-dark text-xs">
-                            {item.photos && item.photos.length > 0 ? (
-                              <img
-                                src={item.photos[0]}
-                                alt={item.title}
-                                className="h-full w-full object-cover"
-                              />
-                            ) : (
-                              <div className="text-zinc-500 font-bold italic flex flex-col items-center">
-                                <Home className="h-8 w-8 mb-1 text-zinc-800" />
-                                <span>Property Snapshot</span>
-                              </div>
-                            )}
-                            
-                            {/* Price badge */}
-                            <span className="absolute bottom-3 left-3 bg-[#cfa052] text-white border border-[#b58942] rounded-lg px-2.5 py-1 text-xs font-bold shadow-[0_4px_10px_rgba(0,0,0,0.5)]">
-                              CAD ${item.rent}/mo
-                            </span>
-                          </div>
+                          <div key={item.id} className="bg-card-dark border border-contrast-dark hover:border-[#cfa052]/30 hover:shadow-[0_0_15px_rgba(207,160,82,0.05)] transition-all flex flex-col justify-between overflow-hidden rounded-xl h-full">
+                            {/* Placeholder image representation */}
+                            <div className="h-44 bg-zinc-950 flex items-center justify-center relative border-b border-contrast-dark text-xs">
+                              {item.photos && item.photos.length > 0 ? (
+                                <img
+                                  src={item.photos[0]}
+                                  alt={item.title}
+                                  className="h-full w-full object-cover"
+                                />
+                              ) : (
+                                <div className="text-zinc-500 font-bold italic flex flex-col items-center">
+                                  <Home className="h-8 w-8 mb-1 text-zinc-800" />
+                                  <span>Property Snapshot</span>
+                                </div>
+                              )}
 
-                          <div className="p-4 flex-grow flex flex-col justify-between space-y-3">
-                            <div className="space-y-2">
-                              <div className="flex items-center justify-between">
-                                <span className="inline-flex items-center space-x-1 text-[9px] text-zinc-500 font-extrabold uppercase tracking-wider">
-                                  <MapPin className="h-3 w-3 text-[#cfa052]" />
-                                  <span>{item.city}, Canada</span>
+                              {/* Price badge */}
+                              <span className="absolute bottom-3 left-3 bg-[#cfa052] text-white border border-[#b58942] rounded-lg px-2.5 py-1 text-xs font-bold shadow-[0_4px_10px_rgba(0,0,0,0.5)]">
+                                CAD ${item.rent}/mo
+                              </span>
+                            </div>
+
+                            <div className="p-4 flex-grow flex flex-col justify-between space-y-3">
+                              <div className="space-y-2">
+                                <div className="flex items-center justify-between">
+                                  <span className="inline-flex items-center space-x-1 text-[9px] text-zinc-500 font-extrabold uppercase tracking-wider">
+                                    <MapPin className="h-3 w-3 text-[#cfa052]" />
+                                    <span>{item.city}, Canada</span>
+                                  </span>
+
+                                  {item.owner?.isVerified && (
+                                    <div className="flex items-center space-x-1 text-[#cfa052] bg-[#cfa052]/5 border border-[#cfa052]/10 rounded px-1.5 py-0.5 text-[9px] font-bold">
+                                      <ShieldCheck className="h-3.5 w-3.5 text-[#cfa052]" />
+                                      <span>Vetted Owner</span>
+                                    </div>
+                                  )}
+                                </div>
+
+                                <h3 className="font-bold text-sm text-white line-clamp-1">{item.title}</h3>
+                                <p className="text-xs text-zinc-400 line-clamp-2 leading-relaxed">{item.description}</p>
+                              </div>
+
+                              <div className="flex items-center space-x-4 border-t border-contrast-dark pt-3 text-[10px] text-zinc-500 font-bold">
+                                <span className="flex items-center space-x-1">
+                                  <Bed className="h-3.5 w-3.5 text-[#cfa052]" />
+                                  <span>{item.bedrooms} Bed</span>
                                 </span>
-                                
-                                {item.owner?.isVerified && (
-                                  <div className="flex items-center space-x-1 text-[#cfa052] bg-[#cfa052]/5 border border-[#cfa052]/10 rounded px-1.5 py-0.5 text-[9px] font-bold">
-                                    <ShieldCheck className="h-3.5 w-3.5 text-[#cfa052]" />
-                                    <span>Vetted Owner</span>
-                                  </div>
-                                )}
+                                <span className="flex items-center space-x-1">
+                                  <Bath className="h-3.5 w-3.5 text-[#cfa052]" />
+                                  <span>{item.bathrooms} Bath</span>
+                                </span>
+                                <span className="flex items-center space-x-1">
+                                  <Calendar className="h-3.5 w-3.5 text-[#cfa052]" />
+                                  <span>Avail: {new Date(item.availabilityDate).toLocaleDateString(undefined, { month: 'short', year: 'numeric' })}</span>
+                                </span>
                               </div>
-
-                              <h3 className="font-bold text-sm text-white line-clamp-1">{item.title}</h3>
-                              <p className="text-xs text-zinc-400 line-clamp-2 leading-relaxed">{item.description}</p>
                             </div>
-                            
-                            <div className="flex items-center space-x-4 border-t border-contrast-dark pt-3 text-[10px] text-zinc-500 font-bold">
-                              <span className="flex items-center space-x-1">
-                                <Bed className="h-3.5 w-3.5 text-[#cfa052]" />
-                                <span>{item.bedrooms} Bed</span>
-                              </span>
-                              <span className="flex items-center space-x-1">
-                                <Bath className="h-3.5 w-3.5 text-[#cfa052]" />
-                                <span>{item.bathrooms} Bath</span>
-                              </span>
-                              <span className="flex items-center space-x-1">
-                                <Calendar className="h-3.5 w-3.5 text-[#cfa052]" />
-                                <span>Avail: {new Date(item.availabilityDate).toLocaleDateString(undefined, {month: 'short', year: 'numeric'})}</span>
-                              </span>
-                            </div>
-                          </div>
 
-                          <div className="px-4 pb-4 flex items-center justify-between gap-2 pt-2">
-                            <button
-                              onClick={() => setSelectedListing(item)}
-                              className="flex-grow rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-white py-2 text-center text-xs font-bold transition-colors cursor-pointer"
-                            >
-                              View Details
-                            </button>
-                            <motion.button
-                              whileTap={{ scale: 0.8 }}
-                              onClick={() => toggleSaveListing(item.id)}
-                              disabled={savingListingId === item.id}
-                              className={`rounded-lg border p-2 text-zinc-400 hover:text-white transition-colors cursor-pointer ${
-                                isSaved
+                            <div className="px-4 pb-4 flex items-center justify-between gap-2 pt-2">
+                              <button
+                                onClick={() => setSelectedListing(item)}
+                                className="flex-grow rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-white py-2 text-center text-xs font-bold transition-colors cursor-pointer"
+                              >
+                                View Details
+                              </button>
+                              <motion.button
+                                whileTap={{ scale: 0.8 }}
+                                onClick={() => toggleSaveListing(item.id)}
+                                disabled={savingListingId === item.id}
+                                className={`rounded-lg border p-2 text-zinc-400 hover:text-white transition-colors cursor-pointer ${isSaved
                                   ? "bg-[#cfa052]/10 border-[#cfa052]/30 text-[#cfa052] hover:bg-[#cfa052]/20"
                                   : "border-contrast-dark bg-zinc-950 hover:bg-zinc-900"
-                              }`}
-                            >
-                              <motion.div animate={{ scale: isSaved ? [1, 1.3, 1] : 1 }}>
-                                <Bookmark className={`h-4 w-4 ${isSaved ? "fill-current" : ""}`} />
-                              </motion.div>
-                            </motion.button>
+                                  }`}
+                              >
+                                <motion.div animate={{ scale: isSaved ? [1, 1.3, 1] : 1 }}>
+                                  <Bookmark className={`h-4 w-4 ${isSaved ? "fill-current" : ""}`} />
+                                </motion.div>
+                              </motion.button>
+                            </div>
                           </div>
-                        </div>
                         );
                       })}
                     </div>
@@ -892,9 +883,8 @@ export default function DashboardView() {
                           <button
                             key={room.id}
                             onClick={() => setActiveRoom(room)}
-                            className={`w-full text-left p-4 flex flex-col gap-1 transition-all cursor-pointer ${
-                              activeRoom?.id === room.id ? "bg-[#d4ff4d]/[0.02] border-l-2 border-[#d4ff4d]" : "hover:bg-zinc-900/20"
-                            }`}
+                            className={`w-full text-left p-4 flex flex-col gap-1 transition-all cursor-pointer ${activeRoom?.id === room.id ? "bg-[#d4ff4d]/[0.02] border-l-2 border-[#d4ff4d]" : "hover:bg-zinc-900/20"
+                              }`}
                           >
                             <div className="flex items-center justify-between">
                               <span className="font-bold text-zinc-200">{room.owner.fullName}</span>
@@ -940,11 +930,10 @@ export default function DashboardView() {
                             messages.map((msg) => (
                               <div
                                 key={msg.id}
-                                className={`flex flex-col max-w-[75%] rounded-xl p-3 ${
-                                  msg.senderId === currentUser.id
-                                    ? "bg-[#d4ff4d]/5 border border-[#d4ff4d]/15 text-white ml-auto rounded-tr-none"
-                                    : "bg-zinc-950 border border-contrast-dark text-zinc-150 mr-auto rounded-tl-none"
-                                }`}
+                                className={`flex flex-col max-w-[75%] rounded-xl p-3 ${msg.senderId === currentUser.id
+                                  ? "bg-[#d4ff4d]/5 border border-[#d4ff4d]/15 text-white ml-auto rounded-tr-none"
+                                  : "bg-zinc-950 border border-contrast-dark text-zinc-150 mr-auto rounded-tl-none"
+                                  }`}
                               >
                                 <span className="text-[9px] opacity-60 font-semibold mb-1">
                                   {msg.senderId === currentUser.id ? "You" : msg.sender.fullName}
@@ -1055,7 +1044,7 @@ export default function DashboardView() {
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 text-xs">
                   {/* Column 1 & 2: Sub management & buy */}
                   <div className="lg:col-span-2 space-y-6">
-                    
+
                     {/* Active Plan info */}
                     <div className="bg-card-dark p-6 rounded-xl border border-contrast-dark shadow-xl space-y-4">
                       <h3 className="text-sm font-bold text-white flex items-center space-x-1.5">
@@ -1099,7 +1088,7 @@ export default function DashboardView() {
                     {/* Purchase form - Admin approved billing */}
                     <div className="bg-card-dark p-6 rounded-xl border border-contrast-dark shadow-xl space-y-4">
                       <h3 className="text-sm font-bold text-white">Request a Subscription Plan</h3>
-                      
+
                       <div className="rounded-lg bg-[#d4ff4d]/5 border border-[#d4ff4d]/15 p-3.5 text-[10px] text-zinc-300 leading-relaxed">
                         <p className="font-bold text-[#d4ff4d] mb-1">📋 Admin-Approved Billing</p>
                         <p>Submit your plan request and our team will review and manually activate your subscription within 1–2 business hours. You will receive an email confirmation once your plan is active.</p>
@@ -1110,7 +1099,7 @@ export default function DashboardView() {
                           <span>{purchaseSuccessMsg}</span>
                         </div>
                       )}
-                      
+
                       {billingError && (
                         <div className="rounded-lg bg-red-950/20 border border-red-900/40 p-3 text-red-400 text-xs">
                           <span>{billingError}</span>
@@ -1226,11 +1215,10 @@ export default function DashboardView() {
                                   <td className="py-3 pr-2">{new Date(sub.startDate).toLocaleDateString()}</td>
                                   <td className="py-3 pr-2">{new Date(sub.endDate).toLocaleDateString()}</td>
                                   <td className="py-3">
-                                    <span className={`px-2 py-0.5 rounded text-[9px] font-bold ${
-                                      sub.isActive 
-                                        ? "bg-emerald-950/30 border border-emerald-900/40 text-emerald-450" 
-                                        : "bg-zinc-900 border border-zinc-800 text-zinc-500"
-                                    }`}>
+                                    <span className={`px-2 py-0.5 rounded text-[9px] font-bold ${sub.isActive
+                                      ? "bg-emerald-950/30 border border-emerald-900/40 text-emerald-450"
+                                      : "bg-zinc-900 border border-zinc-800 text-zinc-500"
+                                      }`}>
                                       {sub.isActive ? "Active" : "Expired"}
                                     </span>
                                   </td>
@@ -1315,7 +1303,7 @@ export default function DashboardView() {
                   <MapPin className="h-3 w-3 text-[#d4ff4d]" />
                   <span>{selectedListing.location}, {selectedListing.city}</span>
                 </span>
-                
+
                 {selectedListing.owner?.isVerified && (
                   <div className="flex items-center space-x-1 text-[#d4ff4d] bg-[#d4ff4d]/5 border border-[#d4ff4d]/10 rounded px-1.5 py-0.5 text-[9px] font-bold">
                     <ShieldCheck className="h-3.5 w-3.5 text-[#d4ff4d]" />

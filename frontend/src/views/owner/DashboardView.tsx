@@ -298,7 +298,7 @@ export default function DashboardView() {
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || e.target.files.length === 0) return;
     const files = Array.from(e.target.files);
-    
+
     // Check total count (current photos + newly selected files)
     if (photos.length + files.length > 10) {
       setFormError("You can upload a maximum of 10 photos.");
@@ -451,9 +451,9 @@ export default function DashboardView() {
         <div className="space-y-8">
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-2 group">
-            <Logo className="h-6 w-6 text-[#d4ff4d] transition-transform duration-300 group-hover:scale-110" />
-            <span className="text-lg font-bold tracking-tight text-white">
-              Nest<span className="text-[#d4ff4d]">Arrival</span>
+            <Logo className="h-6 w-6 text-[#cfa052] transition-transform duration-300 group-hover:scale-110" />
+            <span className="text-lg font-bold tracking-tight text-white font-serif">
+              Nest<span className="text-[#cfa052]">Arrival</span>
             </span>
           </Link>
 
@@ -464,8 +464,8 @@ export default function DashboardView() {
             <button
               onClick={() => setActiveTab("listings")}
               className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${activeTab === "listings"
-                  ? "bg-[#d4ff4d]/5 text-[#d4ff4d] border-l-2 border-[#d4ff4d]"
-                  : "text-zinc-400 hover:text-white hover:bg-zinc-900/30"
+                ? "bg-[#d4ff4d]/5 text-[#d4ff4d] border-l-2 border-[#d4ff4d]"
+                : "text-zinc-400 hover:text-white hover:bg-zinc-900/30"
                 }`}
             >
               <Home className="h-4 w-4" />
@@ -475,8 +475,8 @@ export default function DashboardView() {
             <button
               onClick={() => setActiveTab("approaches")}
               className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${activeTab === "approaches"
-                  ? "bg-[#d4ff4d]/5 text-[#d4ff4d] border-l-2 border-[#d4ff4d]"
-                  : "text-zinc-400 hover:text-white hover:bg-zinc-900/30"
+                ? "bg-[#d4ff4d]/5 text-[#d4ff4d] border-l-2 border-[#d4ff4d]"
+                : "text-zinc-400 hover:text-white hover:bg-zinc-900/30"
                 }`}
             >
               <div className="flex items-center space-x-3">
@@ -493,8 +493,8 @@ export default function DashboardView() {
             <button
               onClick={() => setActiveTab("verification")}
               className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${activeTab === "verification"
-                  ? "bg-[#d4ff4d]/5 text-[#d4ff4d] border-l-2 border-[#d4ff4d]"
-                  : "text-zinc-400 hover:text-white hover:bg-zinc-900/30"
+                ? "bg-[#d4ff4d]/5 text-[#d4ff4d] border-l-2 border-[#d4ff4d]"
+                : "text-zinc-400 hover:text-white hover:bg-zinc-900/30"
                 }`}
             >
               <ShieldCheck className="h-4 w-4" />
@@ -527,9 +527,9 @@ export default function DashboardView() {
       {/* 2. Mobile Header Bar */}
       <header className="md:hidden flex items-center justify-between w-full h-16 fixed top-0 left-0 bg-sidebar-dark border-b border-contrast-dark z-30 px-4">
         <Link href="/" className="flex items-center space-x-2">
-          <Logo className="h-5 w-5 text-[#d4ff4d]" />
-          <span className="text-base font-bold tracking-tight text-white">
-            Nest<span className="text-[#d4ff4d]">Arrival</span>
+          <Logo className="h-5 w-5 text-[#cfa052]" />
+          <span className="text-base font-bold tracking-tight text-white font-serif">
+            Nest<span className="text-[#cfa052]">Arrival</span>
           </span>
         </Link>
         <button
@@ -791,7 +791,7 @@ export default function DashboardView() {
                         {/* Photos Section */}
                         <div className="space-y-3 pt-2">
                           <label className="block text-zinc-350 font-bold mb-1.5 uppercase tracking-wider text-[10px]">Property Photos *</label>
-                          
+
                           <div className="flex items-center justify-center w-full">
                             <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-zinc-800 border-dashed rounded-xl cursor-pointer bg-zinc-950 hover:bg-zinc-900/40 transition-all">
                               <div className="flex flex-col items-center justify-center pt-5 pb-6">
@@ -903,12 +903,12 @@ export default function DashboardView() {
 
                                 {/* Moderation status badge */}
                                 <span className={`absolute top-3 right-3 rounded-lg px-2 py-0.5 text-[9px] font-bold shadow ${item.status === "APPROVED"
-                                    ? "bg-emerald-950/40 border border-emerald-850 text-emerald-450"
-                                    : item.status === "PENDING_REVIEW"
-                                      ? "bg-[#d4ff4d]/10 border border-[#d4ff4d]/20 text-[#d4ff4d]"
-                                      : item.status === "REJECTED"
-                                        ? "bg-red-955 border border-red-900 text-red-400"
-                                        : "bg-zinc-900 border border-zinc-800 text-zinc-400"
+                                  ? "bg-emerald-950/40 border border-emerald-850 text-emerald-450"
+                                  : item.status === "PENDING_REVIEW"
+                                    ? "bg-[#d4ff4d]/10 border border-[#d4ff4d]/20 text-[#d4ff4d]"
+                                    : item.status === "REJECTED"
+                                      ? "bg-red-955 border border-red-900 text-red-400"
+                                      : "bg-zinc-900 border border-zinc-800 text-zinc-400"
                                   }`}>
                                   {item.status}
                                 </span>
@@ -1013,8 +1013,8 @@ export default function DashboardView() {
                                 <div
                                   key={msg.id}
                                   className={`flex flex-col max-w-[80%] rounded-xl p-3 ${msg.senderId === currentUser.id
-                                      ? "bg-[#d4ff4d]/5 border border-[#d4ff4d]/15 text-white ml-auto rounded-tr-none"
-                                      : "bg-zinc-950 border border-contrast-dark text-zinc-100 mr-auto rounded-tl-none"
+                                    ? "bg-[#d4ff4d]/5 border border-[#d4ff4d]/15 text-white ml-auto rounded-tr-none"
+                                    : "bg-zinc-950 border border-contrast-dark text-zinc-100 mr-auto rounded-tl-none"
                                     }`}
                                 >
                                   <span className="text-[9px] opacity-60 font-semibold mb-1">
@@ -1103,10 +1103,10 @@ export default function DashboardView() {
                     <div className="flex justify-between items-center p-3 rounded-lg bg-zinc-950 border border-zinc-900">
                       <span className="font-bold text-zinc-500">Security Credentials Status:</span>
                       <span className={`font-bold uppercase ${isVerified
-                          ? "text-emerald-400"
-                          : hasPendingVerification
-                            ? "text-[#d4ff4d]"
-                            : "text-red-400"
+                        ? "text-emerald-400"
+                        : hasPendingVerification
+                          ? "text-[#d4ff4d]"
+                          : "text-red-400"
                         }`}>
                         {currentUser.verificationStatus}
                       </span>
@@ -1243,7 +1243,7 @@ export default function DashboardView() {
                 {/* Photos Section */}
                 <div className="space-y-3 pt-2">
                   <label className="block text-zinc-400 font-bold mb-1.5">Property Photos *</label>
-                  
+
                   <div className="flex items-center justify-center w-full">
                     <label className="flex flex-col items-center justify-center w-full h-24 border-2 border-zinc-800 border-dashed rounded-xl cursor-pointer bg-zinc-950 hover:bg-zinc-900/40 transition-all">
                       <div className="flex flex-col items-center justify-center pt-3 pb-3">
