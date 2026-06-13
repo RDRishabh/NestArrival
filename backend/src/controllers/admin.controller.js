@@ -10,6 +10,7 @@
 
 const { prisma } = require("../config/db");
 const { sendServerError } = require("../utils/http");
+const { SUBSCRIPTION_PLANS } = require("../utils/constants");
 
 exports.getAnalytics = async (req, res) => {
   try {
@@ -323,5 +324,105 @@ exports.banUser = async (req, res) => {
       "User moderation error: " + err.message,
       "Failed to update user status",
     );
+  }
+};
+
+exports.getSubscriptionsQueue = async (req, res) => {
+  try {
+    const page = Math.max(Number(req.query.page) || 1, 1);
+    const limit = Math.min(Math.max(Number(req.query.limit) || 20, 1), 100);
+    const skip = (page - 1) * limit;
+
+    const [total, list] = await Promise.all([
+      prisma.subscription.count(),
+      prisma.subscription.findMany({
+        include: {
+          user: {
+            select: {
+              id: true,
+              fullName: true,
+              email: true,
+            },
+          },
+        },
+        orderBy: { createdAt: "desc" },
+        skip,
+        take: limit,
+      }),
+    ]);
+
+    res.json({ total, page, limit, subscriptions: list });
+  } catch (err) {
+    return sendServerError(res, err, "Failed to fetch subscriptions");
+  }
+};
+
+exports.moderateSubscription = async (req, res) => {
+  try {
+    const { subscriptionId, action } = req.body;
+    if (!subscriptionId || !action) {
+      return res.status(400).json({ error: "Subscription ID and action are required" });
+    }
+    if (!["APPROVE", "REJECT"].includes(action)) {
+      return res.status(400).json({ error: "Invalid action" });
+    }
+
+    const sub = await prisma.subscription.findUnique({
+      where: { id: subscriptionId },
+    });
+    if (!sub) {
+      return res.status(404).json({ error: "Subscription not found" });
+    }
+
+    if (sub.status !== "PENDING") {
+      return res.status(400).json({ error: "Subscription is already processed" });
+    }
+
+    const status = action === "APPROVE" ? "APPROVED" : "REJECTED";
+    const isActive = action === "APPROVE";
+
+    await prisma.$transaction(async (tx) => {
+      if (action === "APPROVE") {
+        // Deactivate user's other active subscriptions
+        await tx.subscription.updateMany({
+          where: { userId: sub.userId, isActive: true },
+          data: { isActive: false },
+        });
+
+        const startDate = new Date();
+        const endDate = new Date(Date.now() + sub.durationDays * 24 * 60 * 60 * 1000);
+
+        await tx.subscription.update({
+          where: { id: subscriptionId },
+          data: {
+            status,
+            isActive,
+            startDate,
+            endDate,
+          },
+        });
+
+        // Check if urgent match addon was purchased
+        const plan = SUBSCRIPTION_PLANS.find((p) => p.id === sub.planId);
+        const basePrice = plan ? (sub.isSubscription ? plan.priceSub : plan.priceOneTime) : sub.price;
+        const hasUrgent = sub.price > basePrice;
+
+        if (hasUrgent) {
+          await tx.user.update({
+            where: { id: sub.userId },
+            data: { isUrgentMatch: true, urgentMatchRequestedAt: new Date() },
+          });
+        }
+      } else {
+        await tx.subscription.update({
+          where: { id: subscriptionId },
+          data: { status, isActive },
+        });
+      }
+    });
+
+    res.json({ message: `Subscription ${action === "APPROVE" ? "approved" : "rejected"} successfully.` });
+  } catch (err) {
+    return sendServerError(res, err, "Failed to moderate subscription");
   }
 };

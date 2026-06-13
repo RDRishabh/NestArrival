@@ -3,7 +3,7 @@
 import { useRef, useState, useEffect } from "react";
 import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 
-interface TiltCardProps {
+interface TiltCardProps extends React.HTMLAttributes<HTMLDivElement> {
   children: React.ReactNode;
   className?: string;
   tiltMax?: number;
@@ -19,6 +19,7 @@ export default function TiltCard({
   glare = true,
   scale = 1.02,
   shadow = true,
+  ...divProps
 }: TiltCardProps) {
   const cardRef = useRef<HTMLDivElement>(null);
   const [reducedMotion, setReducedMotion] = useState(false);
@@ -66,7 +67,11 @@ export default function TiltCard({
   };
 
   if (reducedMotion) {
-    return <div className={className}>{children}</div>;
+    return (
+      <div className={className} {...divProps}>
+        {children}
+      </div>
+    );
   }
 
   return (
@@ -75,6 +80,7 @@ export default function TiltCard({
         ref={cardRef}
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
+        {...divProps}
         style={{
           rotateX,
           rotateY,

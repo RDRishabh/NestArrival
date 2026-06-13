@@ -45,8 +45,6 @@ export default function HomeView() {
 
       {!isOwner && <TrendingHomesSection user={user} loading={loading} />}
 
-      {/* <FoundersMessageSection /> */}
-
       <PartnersSection />
       <EarlyAccessSection />
 

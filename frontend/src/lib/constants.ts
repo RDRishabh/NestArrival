@@ -28,20 +28,11 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
     isFeatured: false,
   },
   {
-    id: "plan-3",
-    name: "Relocator",
-    priceOneTime: 69,
-    priceSub: 49,
-    durationDays: 45,
-    approachesLimit: 30,
-    isFeatured: false,
-  },
-  {
     id: "plan-featured",
     name: "Priority",
     priceOneTime: 89,
     priceSub: 79,
-    durationDays: 60, // Let's make elite plan 60 days
+    durationDays: 60,
     approachesLimit: -1, // Unlimited
     isFeatured: true,
   },

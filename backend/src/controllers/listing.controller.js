@@ -179,6 +179,7 @@ exports.createListing = async (req, res) => {
       bedrooms,
       bathrooms,
       availabilityDate,
+      photos,
     } = req.body;
 
     if (
@@ -222,7 +223,7 @@ exports.createListing = async (req, res) => {
         bedrooms: bedroomsValue,
         bathrooms: bathroomsValue,
         availabilityDate: availDate,
-        photos: [],
+        photos: Array.isArray(photos) ? photos : [],
         status: "PENDING_REVIEW",
       },
     });
@@ -247,6 +248,7 @@ exports.updateListing = async (req, res) => {
       bedrooms,
       bathrooms,
       availabilityDate,
+      photos,
     } = req.body;
 
     const item = await prisma.listing.findUnique({
@@ -311,6 +313,10 @@ exports.updateListing = async (req, res) => {
       updates.availabilityDate = availDate;
     }
 
+    if (photos !== undefined) {
+      updates.photos = Array.isArray(photos) ? photos : [];
+    }
+
     if (requiresReview && item.status === "APPROVED") {
       updates.status = "PENDING_REVIEW";
     }
@@ -356,15 +362,25 @@ exports.archiveListing = async (req, res) => {
 
 exports.getSavedListings = async (req, res) => {
   try {
+    const userId = req.user.id;
+    
     const list = await prisma.savedListing.findMany({
-      where: { userId: req.user.id },
+      where: {
+        userId: userId
+      },
       include: {
         listing: {
           include: {
-            owner: { select: { id: true, fullName: true, isVerified: true } },
-          },
-        },
-      },
+            owner: {
+              select: {
+                id: true,
+                fullName: true,
+                isVerified: true
+              }
+            }
+          }
+        }
+      }
     });
     // Filter out archived/non-approved listings in JS (Prisma does not support
     // where filters on to-one relation includes)
