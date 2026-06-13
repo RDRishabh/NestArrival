@@ -65,8 +65,25 @@ export default function AdminDashboardView() {
         console.error("Failed to parse cached user", err);
       }
     }
-    fetchSession();
-  }, []);
+
+    (async () => {
+      try {
+        const { data } = await authApi.me();
+        if (!data || !data.authenticated || data.user.role !== "ADMIN") {
+          localStorage.removeItem("nestarrival_user");
+          router.push("/login");
+        } else {
+          setCurrentUser(data.user);
+          localStorage.setItem("nestarrival_user", JSON.stringify(data.user));
+        }
+      } catch (e) {
+        localStorage.removeItem("nestarrival_user");
+        router.push("/login");
+      } finally {
+        setLoadingUser(false);
+      }
+    })();
+  }, [router]);
 
   // Auto-load data when user is authenticated and tab changes
   useEffect(() => {
@@ -84,24 +101,6 @@ export default function AdminDashboardView() {
     }
   }, [selectedUser]);
 
-  const fetchSession = async () => {
-    try {
-      const { data } = await authApi.me();
-      if (!data || !data.authenticated || data.user.role !== "ADMIN") {
-        localStorage.removeItem("nestarrival_user");
-        router.push("/login");
-      } else {
-        setCurrentUser(data.user);
-        localStorage.setItem("nestarrival_user", JSON.stringify(data.user));
-      }
-    } catch (e) {
-      localStorage.removeItem("nestarrival_user");
-      router.push("/login");
-    } finally {
-      setLoadingUser(false);
-    }
-  };
-
   const handleLogout = async () => {
     localStorage.removeItem("nestarrival_user");
     const res = await authApi.logout();
@@ -110,7 +109,7 @@ export default function AdminDashboardView() {
     }
   };
 
-  const loadTabData = () => {
+  function loadTabData() {
     if (activeTab === "analytics") fetchAnalytics();
     if (activeTab === "verifications") fetchVerifications();
     if (activeTab === "listings") fetchListingsQueue();
@@ -118,7 +117,7 @@ export default function AdminDashboardView() {
     if (activeTab === "cms") fetchCmsPages();
     if (activeTab === "users") fetchUsers();
     if (activeTab === "subscriptions") fetchSubscriptionsQueue();
-  };
+  }
 
   const fetchAnalytics = async () => {
     setLoadingAnalytics(true);
@@ -169,16 +168,8 @@ export default function AdminDashboardView() {
     } finally {
       setLoadingRefunds(false);
     }
-    setListingsQueue(listingsData);
-  } catch (e) {
-    console.error(e);
-    setListingsQueue([]); 
-  } finally {
-    setLoadingListingsQueue(false);
-  }
-};
+  };
 
- 
   const fetchCmsPages = async () => {
     setLoadingCms(true);
     try {
