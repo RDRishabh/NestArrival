@@ -45,7 +45,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="h-full">
-      <body className={`${geistSans.variable} ${geistMono.variable} ${playfairDisplay.variable} h-full antialiased font-sans text-slate-900 bg-[#faf8f5]`}>
+      <body suppressHydrationWarning className={`${geistSans.variable} ${geistMono.variable} ${playfairDisplay.variable} h-full antialiased font-sans text-slate-900 bg-[#faf8f5]`}>
         {children}
         <CookieBanner />
       </body>

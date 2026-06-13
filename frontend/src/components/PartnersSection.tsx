@@ -68,7 +68,7 @@ export default function PartnersSection() {
         </div>
 
         <div className="flex justify-center pt-8">
-          <Link href="/contact?role=partner" className="text-xs font-bold bg-[#2c2724] hover:bg-[#cfa052] text-white px-8 py-3.5 rounded-full transition-all duration-300 shadow-sm flex items-center gap-2 group hover:scale-105">
+          <Link href="/partner-with-us" className="text-xs font-bold bg-[#2c2724] hover:bg-[#cfa052] text-white px-8 py-3.5 rounded-full transition-all duration-300 shadow-sm flex items-center gap-2 group hover:scale-105">
             Partner With Us
             <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
           </Link>

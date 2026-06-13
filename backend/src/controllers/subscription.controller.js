@@ -62,33 +62,6 @@ exports.createSubscription = async (req, res) => {
       Date.now() + plan.durationDays * 24 * 60 * 60 * 1000,
     );
 
-    // CRITICAL: Payment processing must be implemented before subscription creation
-    // Currently, subscriptions are created WITHOUT charging users, creating revenue leakage.
-    // Required implementation:
-    // 1. Integrate payment gateway (Stripe, PayPal, etc.)
-    // 2. Process payment BEFORE this transaction
-    // 3. Store paymentId/paymentStatus with subscription
-    // 4. Handle payment failures and retry logic
-    // DO NOT remove this requirement or deployments will leak revenue.
-    //
-    // Example integration pattern:
-    // const paymentResult = await paymentGateway.charge({
-    //   userId: req.user.id,
-    //   amount: finalPrice,
-    //   currency: "USD",
-    //   planId: plan.id,
-    //   idempotencyKey: `${req.user.id}-${plan.id}-${Date.now()}`,
-    // });
-    // if (!paymentResult.success) {
-    //   return res.status(402).json({
-    //     error: "Payment declined",
-    //     details: paymentResult.error
-    //   });
-    // }
-    throw new Error(
-      "PAYMENT_NOT_IMPLEMENTED - Subscription creation blocked until payment gateway is integrated",
-    );
-
     await prisma.$transaction(async (tx) => {
       // Prevent duplicate submissions within last 10 seconds (any plan)
       const recentSub = await tx.subscription.findFirst({
@@ -101,10 +74,16 @@ exports.createSubscription = async (req, res) => {
         throw new Error("DUPLICATE_REQUEST");
       }
 
-      await tx.subscription.updateMany({
-        where: { userId: req.user.id, isActive: true },
-        data: { isActive: false },
+      // Check if there is already a pending request for the user
+      const existingPending = await tx.subscription.findFirst({
+        where: {
+          userId: req.user.id,
+          status: "PENDING",
+        },
       });
+      if (existingPending) {
+        throw new Error("PENDING_REQUEST_EXISTS");
+      }
 
       await tx.subscription.create({
         data: {
@@ -117,19 +96,13 @@ exports.createSubscription = async (req, res) => {
           approachesAllowed: plan.approachesLimit,
           startDate,
           endDate,
-          isActive: true,
+          isActive: false,
+          status: "PENDING",
         },
       });
-
-      if (purchaseUrgent) {
-        await tx.user.update({
-          where: { id: req.user.id },
-          data: { isUrgentMatch: true, urgentMatchRequestedAt: new Date() },
-        });
-      }
     });
 
-    res.json({ message: `Successfully purchased ${plan.name}!` });
+    res.json({ message: `Successfully requested ${plan.name}! It is pending admin approval.` });
   } catch (err) {
     if (isZodError(err)) {
       return sendValidationError(res, err);
@@ -140,7 +113,7 @@ exports.createSubscription = async (req, res) => {
           "Payment processing is not yet configured. Please contact support.",
       });
     }
-    if (err.message === "DUPLICATE_REQUEST") {
+    if (err.message === "DUPLICATE_REQUEST" || err.message === "PENDING_REQUEST_EXISTS") {
       return res.status(409).json({
         error:
           "A subscription request is already pending. Please wait before submitting another.",

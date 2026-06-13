@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Mail, Lock, KeyRound, AlertCircle, ArrowRight, ArrowLeft, Eye, EyeOff, RefreshCw, CheckCircle } from "lucide-react";
@@ -19,6 +19,21 @@ const passwordRules = [
 
 export default function LoginView() {
   const router = useRouter();
+
+  useEffect(() => {
+    const cached = localStorage.getItem("nestarrival_user");
+    if (cached) {
+      try {
+        const user = JSON.parse(cached);
+        if (user.role === "ADMIN") router.push("/admin/dashboard");
+        else if (user.role === "OWNER") router.push("/owner/dashboard");
+        else if (user.role === "TENANT") router.push("/tenant/dashboard");
+      } catch (err) {
+        console.error("Failed to parse cached user in LoginView", err);
+      }
+    }
+  }, [router]);
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -54,6 +69,7 @@ export default function LoginView() {
       }
 
       const userRole = data.user.role;
+      localStorage.setItem("nestarrival_user", JSON.stringify(data.user));
       if (userRole === "ADMIN") router.push("/admin/dashboard");
       else if (userRole === "OWNER") router.push("/owner/dashboard");
       else router.push("/tenant/dashboard");
@@ -75,6 +91,7 @@ export default function LoginView() {
       }
 
       const userRole = data.user.role;
+      localStorage.setItem("nestarrival_user", JSON.stringify(data.user));
       if (userRole === "ADMIN") router.push("/admin/dashboard");
       else if (userRole === "OWNER") router.push("/owner/dashboard");
       else router.push("/tenant/dashboard");
@@ -97,6 +114,7 @@ export default function LoginView() {
       }
 
       const userRole = data.user.role;
+      localStorage.setItem("nestarrival_user", JSON.stringify(data.user));
       if (userRole === "ADMIN") router.push("/admin/dashboard");
       else if (userRole === "OWNER") router.push("/owner/dashboard");
       else router.push("/tenant/dashboard");

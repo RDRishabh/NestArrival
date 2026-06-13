@@ -30,6 +30,7 @@ import {
 } from "lucide-react";
 import { SUBSCRIPTION_PLANS } from "@/lib/constants";
 import { motion, AnimatePresence } from "framer-motion";
+import Logo from "@/components/Logo";
 
 const socketServerUrl =
   process.env.NEXT_PUBLIC_BACKEND_ORIGIN || "http://localhost:5000";
@@ -87,6 +88,18 @@ export default function DashboardView() {
   const socketRef = useRef<any>(null);
 
   useEffect(() => {
+    const cached = localStorage.getItem("nestarrival_user");
+    if (cached) {
+      try {
+        const userObj = JSON.parse(cached);
+        if (userObj.role === "TENANT") {
+          setCurrentUser(userObj);
+          setLoadingUser(false);
+        }
+      } catch (err) {
+        console.error("Failed to parse cached user", err);
+      }
+    }
     fetchSession();
   }, []);
 
@@ -96,7 +109,7 @@ export default function DashboardView() {
       fetchSavedListings();
       fetchChatRooms();
     }
-  }, [currentUser]);
+  }, [currentUser?.id]);
 
   useEffect(() => {
     if (activeRoom) {
@@ -166,11 +179,14 @@ export default function DashboardView() {
       const res = await fetch("/api/auth/me");
       const data = await res.json();
       if (!res.ok || !data.authenticated || data.user.role !== "TENANT") {
+        localStorage.removeItem("nestarrival_user");
         router.push("/login");
       } else {
         setCurrentUser(data.user);
+        localStorage.setItem("nestarrival_user", JSON.stringify(data.user));
       }
     } catch (e) {
+      localStorage.removeItem("nestarrival_user");
       router.push("/login");
     } finally {
       setLoadingUser(false);
@@ -178,6 +194,7 @@ export default function DashboardView() {
   };
 
   const handleLogout = async () => {
+    localStorage.removeItem("nestarrival_user");
     const res = await fetch("/api/auth/logout", {
       method: "POST",
     });
@@ -505,9 +522,9 @@ export default function DashboardView() {
         <div className="space-y-8">
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-2 group">
-            <ShieldCheck className="h-6 w-6 text-[#d4ff4d] transition-transform duration-300 group-hover:scale-110" />
-            <span className="text-lg font-bold tracking-tight text-white">
-              Nest<span className="text-[#d4ff4d]">Arrival</span>
+            <Logo className="h-6 w-6 text-[#cfa052] transition-transform duration-300 group-hover:scale-110" />
+            <span className="text-lg font-bold tracking-tight text-white font-serif">
+              Nest<span className="text-[#cfa052]">Arrival</span>
             </span>
           </Link>
 
@@ -519,11 +536,10 @@ export default function DashboardView() {
 
             <button
               onClick={() => setActiveTab("search")}
-              className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                activeTab === "search"
-                  ? "bg-[#d4ff4d]/5 text-[#d4ff4d] border-l-2 border-[#d4ff4d]"
-                  : "text-zinc-400 hover:text-white hover:bg-zinc-900/30"
-              }`}
+              className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${activeTab === "search"
+                ? "bg-[#d4ff4d]/5 text-[#d4ff4d] border-l-2 border-[#d4ff4d]"
+                : "text-zinc-400 hover:text-white hover:bg-zinc-900/30"
+                }`}
             >
               <Search className="h-4 w-4" />
               <span>Search Properties</span>
@@ -531,11 +547,10 @@ export default function DashboardView() {
 
             <button
               onClick={() => setActiveTab("chat")}
-              className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                activeTab === "chat"
-                  ? "bg-[#d4ff4d]/5 text-[#d4ff4d] border-l-2 border-[#d4ff4d]"
-                  : "text-zinc-400 hover:text-white hover:bg-zinc-900/30"
-              }`}
+              className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${activeTab === "chat"
+                ? "bg-[#d4ff4d]/5 text-[#d4ff4d] border-l-2 border-[#d4ff4d]"
+                : "text-zinc-400 hover:text-white hover:bg-zinc-900/30"
+                }`}
             >
               <div className="flex items-center space-x-3">
                 <MessageSquare className="h-4 w-4" />
@@ -550,18 +565,17 @@ export default function DashboardView() {
 
             <button
               onClick={() => setActiveTab("saved")}
-              className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                activeTab === "saved"
-                  ? "bg-[#d4ff4d]/5 text-[#d4ff4d] border-l-2 border-[#d4ff4d]"
-                  : "text-zinc-400 hover:text-white hover:bg-zinc-900/30"
-              }`}
+              className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${activeTab === "saved"
+                ? "bg-[#d4ff4d]/5 text-[#d4ff4d] border-l-2 border-[#d4ff4d]"
+                : "text-zinc-400 hover:text-white hover:bg-zinc-900/30"
+                }`}
             >
               <div className="flex items-center space-x-3">
                 <Bookmark className="h-4 w-4" />
                 <span>Saved Listings</span>
               </div>
               {Array.isArray(savedListings) && savedListings.length > 0 && (
-                <span className="bg-zinc-800 text-zinc-350 rounded-full px-1.5 py-0.5 text-[9px] font-bold">
+                <span className="bg-[#d4ff4d] text-black rounded-full px-1.5 py-0.5 text-[9px] font-extrabold">
                   {savedListings.length}
                 </span>
               )}
@@ -569,11 +583,10 @@ export default function DashboardView() {
 
             <button
               onClick={() => setActiveTab("billing")}
-              className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                activeTab === "billing"
-                  ? "bg-[#d4ff4d]/5 text-[#d4ff4d] border-l-2 border-[#d4ff4d]"
-                  : "text-zinc-400 hover:text-white hover:bg-zinc-900/30"
-              }`}
+              className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${activeTab === "billing"
+                ? "bg-[#d4ff4d]/5 text-[#d4ff4d] border-l-2 border-[#d4ff4d]"
+                : "text-zinc-400 hover:text-white hover:bg-zinc-900/30"
+                }`}
             >
               <CreditCard className="h-4 w-4" />
               <span>Billing & Refunds</span>
@@ -612,9 +625,9 @@ export default function DashboardView() {
       {/* 2. Mobile Header Bar */}
       <header className="md:hidden flex items-center justify-between w-full h-16 fixed top-0 left-0 bg-sidebar-dark border-b border-contrast-dark z-30 px-4">
         <Link href="/" className="flex items-center space-x-2">
-          <ShieldCheck className="h-5 w-5 text-[#d4ff4d]" />
-          <span className="text-base font-bold tracking-tight text-white">
-            Nest<span className="text-[#d4ff4d]">Arrival</span>
+          <Logo className="h-5 w-5 text-[#cfa052]" />
+          <span className="text-base font-bold tracking-tight text-white font-serif">
+            Nest<span className="text-[#cfa052]">Arrival</span>
           </span>
         </Link>
         <button
@@ -752,11 +765,7 @@ export default function DashboardView() {
         <div className="flex-grow p-6 md:p-10 relative z-10">
           {/* Verification Alert Banners */}
           {!isVerified && (
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className={`mb-6 rounded-xl border p-4 text-xs shadow-sm flex items-start space-x-3 bg-card-dark border-contrast-dark`}
-            >
+              <motion.div>
               <AlertTriangle className="h-5 w-5 text-[#d4ff4d] flex-shrink-0" />
               <div className="space-y-1">
                 <p className="font-bold text-white">
@@ -782,7 +791,9 @@ export default function DashboardView() {
                   </button>
                 )}
               </div>
-            </motion.div>
+              </motion.div>
+           
+           
           )}
 
           <AnimatePresence mode="wait">
@@ -1087,11 +1098,10 @@ export default function DashboardView() {
                             messages.map((msg) => (
                               <div
                                 key={msg.id}
-                                className={`flex flex-col max-w-[75%] rounded-xl p-3 ${
-                                  msg.senderId === currentUser.id
-                                    ? "bg-[#d4ff4d]/5 border border-[#d4ff4d]/15 text-white ml-auto rounded-tr-none"
-                                    : "bg-zinc-950 border border-contrast-dark text-zinc-150 mr-auto rounded-tl-none"
-                                }`}
+                                className={`flex flex-col max-w-[75%] rounded-xl p-3 ${msg.senderId === currentUser.id
+                                  ? "bg-[#d4ff4d]/5 border border-[#d4ff4d]/15 text-white ml-auto rounded-tr-none"
+                                  : "bg-zinc-950 border border-contrast-dark text-zinc-150 mr-auto rounded-tl-none"
+                                  }`}
                               >
                                 <span className="text-[9px] opacity-60 font-semibold mb-1">
                                   {msg.senderId === currentUser.id
@@ -1298,7 +1308,7 @@ export default function DashboardView() {
                       )}
                     </div>
 
-                    {/* Purchase sandbox form */}
+                    {/* Purchase form - Admin approved billing */}
                     <div className="bg-card-dark p-6 rounded-xl border border-contrast-dark shadow-xl space-y-4">
                       <h3 className="text-sm font-bold text-white">
                         Purchase / Upgrade Plan (Stripe Sandbox)
@@ -1311,7 +1321,7 @@ export default function DashboardView() {
                       )}
 
                       {billingError && (
-                        <div className="rounded-lg bg-red-50 border border-red-200 p-3 text-red-600 text-xs">
+                        <div className="rounded-lg bg-red-950/20 border border-red-900/40 p-3 text-red-400 text-xs">
                           <span>{billingError}</span>
                         </div>
                       )}

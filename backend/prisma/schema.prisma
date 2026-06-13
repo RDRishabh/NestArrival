@@ -144,7 +144,8 @@ model Subscription {
   approachesUsed    Int             @default(0)
   startDate         DateTime        @default(now())
   endDate           DateTime
-  isActive          Boolean         @default(true)
+  isActive          Boolean         @default(false)
+  status            String          @default("PENDING")
   createdAt         DateTime        @default(now())
   
   refundRequests    RefundRequest[]
